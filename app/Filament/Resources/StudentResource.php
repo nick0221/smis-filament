@@ -2,20 +2,31 @@
 
 namespace App\Filament\Resources;
 
+
 use Filament\Tables;
 use App\Models\Student;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
-
-use Illuminate\Support\HtmlString;
-use Filament\Forms\Components\Tabs;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Tabs\Tab;
+use Illuminate\Database\Eloquent\Model;
+
+use Filament\Infolists\Components\Group;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Infolists\Components\Section;
+
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ImageEntry;
 use App\Filament\Resources\StudentResource\Pages;
+use Filament\Infolists\Components\RepeatableEntry;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\StudentResource\RelationManagers;
+use Filament\Forms\Components\{Tabs,  Grid, TextInput, DatePicker, Select, FileUpload, Repeater, Textarea};
+
+
 
 class StudentResource extends Resource
 {
@@ -30,119 +41,87 @@ class StudentResource extends Resource
                 Tabs::make('Student Form')
                 ->tabs([
                     Tab::make('Personal Info')
+                        ->icon('heroicon-m-identification')
                         ->schema([
-                            \Filament\Forms\Components\Grid::make()
+                            Grid::make()
                                 ->schema([
-                                    \Filament\Forms\Components\TextInput::make('first_name')
-                                        ->label('First Name')
-                                        ->autofocus()
-                                        ->placeholder('Enter first name')
-                                        ->required(),
-
-                                    \Filament\Forms\Components\TextInput::make('middle_name')
-                                        ->placeholder('Enter middle name')
-                                        ->label('Middle Name'),
-
-                                    \Filament\Forms\Components\TextInput::make('last_name')
-                                        ->label('Last Name')
-                                        ->placeholder('Enter last name')
-                                        ->required(),
-
-                                    \Filament\Forms\Components\TextInput::make('extension_name')
-                                        ->hint('Optional')
-                                        ->hintColor('muted')
-                                        ->placeholder('Enter extension name (e.g. Jr., Sr., III)')
-                                        ->label('Extension Name'),
-
-                                    \Filament\Forms\Components\DatePicker::make('dob')
-                                        ->label('Date of Birth')
-                                        ->required()
-                                        ->placeholder('Select date of birth')
-                                        ->format('M d, Y')
-                                        ->closeOnDateSelection()
-                                        ->maxDate(now())
-                                        ->native(false),
-
-                                    \Filament\Forms\Components\Select::make('gender')
-                                        ->options([
-                                            'male' => 'Male',
-                                            'female' => 'Female',
-                                        ])
-                                        ->required(),
-                                        \Filament\Forms\Components\FileUpload::make('image')
-                                        ->label('Student Image')
-                                        ->image()
-                                        ->directory('students')
-                                        ->imageCropAspectRatio('1:1')
-                                        ->imageResizeTargetWidth(300)
-                                        ->imageResizeTargetHeight(300),
+                                    TextInput::make('first_name')->label('First Name')->autofocus()->required(),
+                                    TextInput::make('middle_name')->label('Middle Name'),
+                                    TextInput::make('last_name')->label('Last Name')->required(),
+                                    TextInput::make('extension_name')->label('Extension Name')->hint('Optional')->hintColor('muted'),
+                                    DatePicker::make('dob')->label('Date of Birth')->required()->maxDate(now())->native(false),
+                                    Select::make('gender')->options(['male' => 'Male', 'female' => 'Female'])->required(),
+                                    FileUpload::make('image')->label('Student Image')->image()->directory('students')
+                                        ->imageCropAspectRatio('1:1')->imageResizeTargetWidth(300)->imageResizeTargetHeight(300),
                                 ])
-                                ->columns([
-                                    'default' => 1,
-                                    'sm' => 2,
-
-                                ]),
-                        ]),
-
-                    Tab::make('Academic Info')
-                        ->schema([
-                            \Filament\Forms\Components\Grid::make()
-                                ->schema([
-                                    \Filament\Forms\Components\Select::make('teacher_id')
-                                        ->relationship('teacher', 'first_name')
-                                        ->searchable(),
-
-                                    \Filament\Forms\Components\Select::make('class_room_id')
-                                        ->relationship('classRoom', 'name')
-                                        ->searchable(),
-                                ])
-                                ->columns([
-                                    'default' => 1,
-                                    'sm' => 2,
-                                ]),
+                                ->columns(['default' => 1, 'sm' => 2]),
                         ]),
 
                     Tab::make('Contact Info')
+                        ->icon('heroicon-m-phone')
                         ->schema([
-                            \Filament\Forms\Components\Grid::make()
+                            Grid::make()
                                 ->schema([
-                                    \Filament\Forms\Components\TextInput::make('email')->email()->unique(ignoreRecord: true),
-                                    \Filament\Forms\Components\TextInput::make('phone'),
-                                    \Filament\Forms\Components\TextInput::make('address'),
+                                    TextInput::make('email')->email()->unique(ignoreRecord: true),
+                                    TextInput::make('phone'),
+                                    TextInput::make('address'),
                                 ])
-                                ->columns([
-                                    'default' => 1,
-                                    'sm' => 2,
-                                ]),
+                                ->columns(['default' => 1, 'sm' => 2]),
                         ]),
 
                     Tab::make('Family Details')
+                        ->icon('heroicon-m-users')
                         ->schema([
-                            \Filament\Forms\Components\Grid::make()->schema([
-                                \Filament\Forms\Components\Repeater::make('familyMembers')
-                                    ->relationship() // Filament handles hasMany automatically
-                                    ->schema([
-                                        \Filament\Forms\Components\TextInput::make('name')->required()->live(onBlur: true),
-                                        \Filament\Forms\Components\Select::make('relationship')->options([
-                                            'father' => 'Father',
-                                            'mother' => 'Mother',
-                                            'guardian' => 'Guardian',
-                                        ])->required()->live(onBlur: true),
-                                        \Filament\Forms\Components\TextInput::make('contact')->required(),
-                                        \Filament\Forms\Components\TextInput::make('address'),
-                                        \Filament\Forms\Components\TextInput::make('occupation'),
-                                    ])
-                                    ->itemLabel(fn (array $state): ?string => strtoupper($state['name']) .' - '. strtoupper($state['relationship']) ?? null)
-                                    ->grid(['default' => 1, 'sm' => 2])
-                                    ->label('Family Details')
-                                    ->defaultItems(1)
-                                    ->maxItems(3)
-                                    ->minItems(1)
-                                    ->addActionLabel('Add Family Member')
-                                    ->cloneable()
-                                    ->columnSpanFull()
-                                    ->addActionAlignment('right'),
-                            ])->columns(['default' => 1, 'sm' => 2]),
+                            Grid::make()
+                                ->schema([
+                                    Repeater::make('familyMembers')
+                                        ->relationship()
+                                        ->schema([
+                                            TextInput::make('name')->required(),
+                                            Select::make('relationship')
+                                                ->options(['father' => 'Father', 'mother' => 'Mother', 'guardian' => 'Guardian'])
+                                                ->required(),
+                                            TextInput::make('contact')->required(),
+                                            TextInput::make('address'),
+                                            TextInput::make('occupation'),
+                                        ])
+                                        ->itemLabel(fn (array $state): ?string =>
+                                            strtoupper($state['name'] ?? '') . ' - ' . strtoupper($state['relationship'] ?? '')
+                                        )
+                                        ->label('Family Details')
+                                        ->defaultItems(1)
+                                        ->maxItems(3)
+                                        ->minItems(1)
+                                        ->cloneable()
+                                        ->grid(['default' => 1, 'sm' => 3])
+                                        ->columnSpanFull()
+                                        ->addActionLabel('Add Family Member'),
+                                ])
+                                ->columns(['default' => 1, 'sm' => 2]),
+                        ]),
+
+                    // NEW DOCUMENTS TAB
+                    Tab::make('Documents')
+                        ->icon('heroicon-m-paper-clip')
+                        ->schema([
+                            Repeater::make('documents')
+                                ->relationship()
+                                ->label('Document attachments')
+                                ->defaultItems(1)
+                                ->schema([
+                                    TextInput::make('title')->required()->placeholder('e.g. Birth Certificate'),
+                                    Textarea::make('description')->rows(2)->placeholder('Optional notes'),
+                                    FileUpload::make('file_path')
+                                        ->label('File')
+                                        ->disk('public')
+                                        ->directory('student-documents')
+                                        ->required()
+                                        ->acceptedFileTypes(['application/pdf', 'image/*']),
+                                ])
+                                ->grid(['default' => 1, 'sm' => 3])
+                                ->defaultItems(0)
+                                ->addActionLabel('Add Document')
+                                ->columnSpanFull(),
                         ]),
                 ])
                 ->columnSpanFull(),
@@ -152,6 +131,7 @@ class StudentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->recordUrl(fn (Model $record): string => route('filament.app.resources.students.view', ['record' => $record]))
             ->columns([
                 Tables\Columns\ImageColumn::make('image')
                     ->defaultImageUrl(fn ($record) => $record->profile_photo_url)
@@ -195,10 +175,18 @@ class StudentResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('gender')
+                    ->options([
+                        'male' => 'Male',
+                        'female' => 'Female',
+                    ]),
+
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\ViewAction::make()->label('View more'),
+                ])
             ])
 
             ->emptyStateActions([
@@ -207,6 +195,149 @@ class StudentResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->deferLoading();
     }
+
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Section::make('Student Profile')
+                    ->columns(2)
+                    ->schema([
+                        ImageEntry::make('image')
+                            ->label('Profile Photo')
+                            ->circular()
+                            ->hiddenLabel()
+                            ->columnSpan(1)
+                            ->defaultImageUrl(fn ($record) => $record->profile_photo_url),
+
+                        TextEntry::make('full_name')
+                            ->label('Name')
+                            ->formatStateUsing(fn ($record) => $record->full_name)
+                            ->columnSpan(1),
+
+                        TextEntry::make('gender')
+                            ->label('Gender')
+                            ->formatStateUsing(fn ($record) => ucfirst($record->gender)),
+
+                        TextEntry::make('dob')
+                            ->label('Date of Birth')
+                            ->date(),
+
+                        TextEntry::make('email')
+                            ->label('Email'),
+
+                        TextEntry::make('age')
+                            ->label('Age')
+                            ->formatStateUsing(fn ($record) => $record->age ? $record->age . ' years old' : 'N/A'),
+
+
+                        TextEntry::make('phone')
+                            ->label('Phone'),
+
+                        TextEntry::make('address')
+                            ->label('Address'),
+                    ]),
+
+                Section::make('Family Information')
+                    ->persistCollapsed()
+                    ->collapsed()
+                    ->schema([
+                        Group::make()
+                            ->schema([
+                                TextEntry::make('no_family_members')
+                                    ->hiddenLabel()
+                                    ->visible(fn (Student $record): string => $record->familyMembers->isEmpty())
+                                    ->state('No family member information available.')
+                                    ->columnSpanFull()
+                                    ->alignCenter()
+                                    ->icon('heroicon-m-information-circle')
+                                    ->extraAttributes(['class' => 'italic'])
+                                    ->color('muted'),
+
+                                RepeatableEntry::make('familyMembers')
+                                    ->hiddenLabel()
+                                    ->visible(fn ($record) => !empty($record->familyMembers))
+                                    ->grid(['default' => 1, 'sm' => 2])
+                                    ->columns(2)
+                                    ->schema([
+                                        TextEntry::make('name')->label('Name'),
+                                        TextEntry::make('relationship')
+                                            ->formatStateUsing(fn ($record) => ucfirst($record->relationship))
+                                            ->label('Relationship'),
+                                        TextEntry::make('contact')->label('Contact'),
+                                        TextEntry::make('address')->columnSpanFull()->label('Address'),
+                                    ]),
+                            ])
+                    ]),
+
+                Section::make('Academic Information')
+                    ->persistCollapsed()
+                    ->collapsed()
+                    ->schema([
+                        Group::make()
+                            ->schema([
+
+
+
+                            ])
+                    ]),
+
+                Section::make('Documents')
+                    ->persistCollapsed()
+                    ->collapsed()
+                    ->schema([
+                        Group::make()
+                            ->schema([
+                                TextEntry::make('no_documents')
+                                    ->hiddenLabel()
+                                    ->visible(fn (Student $record): string => $record->documents->isEmpty())
+                                    ->state('No document information available.')
+                                    ->columnSpanFull()
+                                    ->alignCenter()
+                                    ->icon('heroicon-m-information-circle')
+                                    ->extraAttributes(['class' => 'italic'])
+                                    ->color('muted'),
+
+                                RepeatableEntry::make('documents')
+                                    ->contained(false)
+                                    ->hiddenLabel()
+                                    ->visible(fn ($record) => !empty($record->documents))
+                                    ->columns(3) // Adjusted to 3 columns for numbering
+                                    ->schema([
+
+                                        TextEntry::make('title')
+                                            ->label('Document Name'),
+
+                                        TextEntry::make('file_path')
+                                            ->label('View / Download')
+                                            ->url(fn ($record) => asset($record->file_path))
+                                            ->openUrlInNewTab()
+                                            ->state('View Document')
+                                            ->color('primary')
+                                            ->icon('heroicon-o-arrow-down-tray'),
+
+                                        TextEntry::make('description')
+                                            ->label('Description'),
+
+                                ])
+
+
+                            ])
+                    ]),
+
+            ]);
+    }
+
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->withoutGlobalScopes();
+    }
+
+
+
+
 
     public static function getRelations(): array
     {
@@ -221,6 +352,7 @@ class StudentResource extends Resource
             'index' => Pages\ListStudents::route('/'),
             'create' => Pages\CreateStudent::route('/create'),
             'edit' => Pages\EditStudent::route('/{record}/edit'),
+            'view' => Pages\ViewStudent::route('/{record}'),
         ];
     }
 }

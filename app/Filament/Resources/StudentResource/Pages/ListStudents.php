@@ -16,4 +16,15 @@ class ListStudents extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+
+
+    public function getHeaderWidgets(): array
+    {
+        return [
+            StudentResource\Widgets\StudentStatsOverview::class,
+        ];
+    }
+
+
 }

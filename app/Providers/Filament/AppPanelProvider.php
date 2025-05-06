@@ -37,6 +37,7 @@ class AppPanelProvider extends PanelProvider
                 'primary' => Color::Indigo,
                 'success' => Color::Emerald,
                 'warning' => Color::Orange,
+                'rose' => Color::Pink,
                 'muted' => '#bbbbbb',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

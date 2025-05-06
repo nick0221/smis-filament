@@ -27,8 +27,8 @@ return new class extends Migration
             $table->string('image')->nullable();
             $table->string('address')->nullable();
             $table->foreignIdFor(User::class)->onDelete('cascade');
-            $table->foreignIdFor(User::class, 'last_updated_by')->onDelete('cascade');
-
+            $table->foreignIdFor(User::class, 'last_updated_by')->onDelete('cascade')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }
