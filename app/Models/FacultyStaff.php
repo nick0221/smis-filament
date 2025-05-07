@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FacultyStaff extends Model
 {
@@ -30,6 +31,10 @@ class FacultyStaff extends Model
     protected $dates = ['dob'];
 
 
+    public function designation(): BelongsTo
+    {
+        return $this->belongsTo(Designation::class);
+    }
 
 
 }

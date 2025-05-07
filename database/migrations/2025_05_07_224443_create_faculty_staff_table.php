@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->date('dob')->nullable();
             $table->enum('gender', ['male', 'female']);
-            $table->string('designation')->nullable(); // e.g., Teacher, Admin
+            $table->foreignId('designation_id')->constrained('designations')->onDelete('set null')->nullable();
             $table->string('department')->nullable();
             $table->string('photo_path')->nullable();
             $table->timestamps();

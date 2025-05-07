@@ -8,6 +8,7 @@ use App\Models\FacultyStaff;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\View\Components\Modal;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -22,26 +23,98 @@ class FacultyStaffResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->schema([
-                Forms\Components\TextInput::make('first_name')
-                    ->required(),
-                Forms\Components\TextInput::make('middle_name'),
-                Forms\Components\TextInput::make('last_name')
-                    ->required(),
-                Forms\Components\TextInput::make('extension_name'),
-                Forms\Components\TextInput::make('email')
-                    ->email()
-                    ->required(),
-                Forms\Components\TextInput::make('phone')
-                    ->tel(),
-                Forms\Components\TextInput::make('address'),
-                Forms\Components\DatePicker::make('dob'),
-                Forms\Components\TextInput::make('gender')
-                    ->required(),
-                Forms\Components\TextInput::make('designation'),
-                Forms\Components\TextInput::make('department'),
-                Forms\Components\TextInput::make('photo_path'),
-            ]);
+        ->schema([
+            Forms\Components\Section::make('Personal Information')
+                ->columns([
+                    'sm' => 1,
+                    'md' => 2,
+                ])
+                ->schema([
+                    Forms\Components\TextInput::make('first_name')
+                        ->required()
+                        ->label('First Name'),
+                    Forms\Components\TextInput::make('middle_name')
+                        ->label('Middle Name'),
+                    Forms\Components\TextInput::make('last_name')
+                        ->required()
+                        ->label('Last Name'),
+                    Forms\Components\TextInput::make('extension_name')
+                        ->label('Extension (e.g. Jr., Sr.)'),
+                    Forms\Components\DatePicker::make('dob')
+                        ->label('Date of Birth'),
+                    Forms\Components\Select::make('gender')
+                        ->options([
+                            'male' => 'Male',
+                            'female' => 'Female',
+                            'other' => 'Other',
+                        ])
+                        ->required(),
+                ]),
+
+            Forms\Components\Section::make('Contact Information')
+                ->columns([
+                    'sm' => 1,
+                    'md' => 2,
+                ])
+                ->schema([
+                    Forms\Components\TextInput::make('email')
+                        ->email()
+                        ->required(),
+                    Forms\Components\TextInput::make('phone')
+                        ->tel()
+                        ->label('Phone Number'),
+                    Forms\Components\TextInput::make('address')
+                        ->columnSpanFull(),
+                ]),
+
+            Forms\Components\Section::make('Professional Details')
+                ->columns([
+                    'sm' => 1,
+                    'md' => 2,
+                ])
+                ->schema([
+                    Forms\Components\Select::make('designation_id')
+                        ->label('Designation')
+                        ->relationship('designation', 'title')
+                        ->required()
+                        ->searchable()
+                        ->preload()
+                        ->createOptionForm([
+                            Forms\Components\TextInput::make('title')
+                                ->placeholder('Enter Designation Title')
+                                ->required(),
+                        ])
+                        ->editOptionForm([
+                            Forms\Components\TextInput::make('title')
+                            ->required(),
+                        ])
+                        ->editOptionAction(
+                            fn (\Filament\Forms\Components\Actions\Action $action) => $action
+                            ->label('Edit Designation')
+                            ->modalSubmitActionLabel('Save Changes')
+                            ->modalHeading('Edit Designation')
+                            ->modalWidth('sm')
+                            ->modalFooterActionsAlignment('end')
+                        )
+                        ->createOptionAction(
+                            fn (\Filament\Forms\Components\Actions\Action $action) => $action
+                                ->label('Create Designation')
+                                ->modalSubmitActionLabel('Save')
+                                ->modalHeading('Add New Designation')
+                                ->modalWidth('sm')
+                                ->modalFooterActionsAlignment('end')
+
+                         ) ,
+
+
+                    Forms\Components\TextInput::make('department')
+                        ->label('Department'),
+                    Forms\Components\FileUpload::make('photo_path')
+                        ->label('Photo')
+                        ->image()
+                        ->directory('faculty-photos'),
+                ]),
+        ]);
     }
 
     public static function table(Table $table): Table
