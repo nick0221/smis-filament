@@ -13,7 +13,21 @@ return new class extends Migration
     {
         Schema::create('faculty_staff', function (Blueprint $table) {
             $table->id();
+            $table->string('first_name');
+            $table->string('middle_name')->nullable();
+            $table->string('last_name');
+            $table->string('extension_name')->nullable(); // e.g. Jr., Sr.
+            $table->string('email')->unique();
+            $table->string('phone')->nullable();
+            $table->string('address')->nullable();
+            $table->date('dob')->nullable();
+            $table->enum('gender', ['male', 'female']);
+            $table->string('designation')->nullable(); // e.g., Teacher, Admin
+            $table->string('department')->nullable();
+            $table->string('photo_path')->nullable();
             $table->timestamps();
+            $table->softDeletes(); // For archiving
+
         });
     }
 
