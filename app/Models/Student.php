@@ -38,15 +38,6 @@ class Student extends Model
         return $this->hasMany(StudentDocument::class);
     }
 
-    public function teacher(): BelongsTo
-    {
-        return $this->belongsTo(Teacher::class);
-    }
-
-    public function classRoom(): BelongsTo
-    {
-        return $this->belongsTo(ClassRoom::class);
-    }
 
     public function familyMembers(): HasMany
     {
