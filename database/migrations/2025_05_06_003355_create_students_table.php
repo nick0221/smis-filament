@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('middle_name')->nullable();
             $table->string('extension_name')->nullable();
-            $table->foreignIdFor(\App\Models\Teacher::class)->onDelete('cascade')->nullable();
+
             $table->foreignIdFor(\App\Models\ClassRoom::class)->onDelete('cascade')->nullable();
             $table->date('dob');
             $table->string('gender');

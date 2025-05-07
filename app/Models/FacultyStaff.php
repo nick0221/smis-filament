@@ -26,6 +26,13 @@ class FacultyStaff extends Model
         'designation',
         'department',
         'photo_path',
+        'user_id',
+        'last_updated_by',
+        'created_by',
+        'deleted_by',
+
+
+
     ];
 
     protected $dates = ['dob'];

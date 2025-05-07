@@ -25,7 +25,6 @@ class Student extends Model
         'phone',
         'image',
         'address',
-        'teacher_id',
         'middle_name',
         'extension_name',
         'user_id',

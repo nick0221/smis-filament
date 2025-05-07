@@ -1,8 +1,10 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use App\Models\User;
+use App\Models\Designation;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
 
 return new class extends Migration
 {
@@ -22,9 +24,13 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->date('dob')->nullable();
             $table->enum('gender', ['male', 'female']);
-            $table->foreignId('designation_id')->constrained('designations')->onDelete('set null')->nullable();
+            $table->foreignIdFor(Designation::class)->onDelete('set null')->nullable();
             $table->string('department')->nullable();
             $table->string('photo_path')->nullable();
+            $table->foreignIdFor(User::class, 'created_by')->onDelete('cascade')->nullable();
+            $table->foreignIdFor(User::class, 'last_updated_by')->onDelete('cascade')->nullable();
+            $table->foreignIdFor(User::class)->onDelete('cascade')->nullable();
+            $table->foreignIdFor(User::class, 'deleted_by')->onDelete('cascade')->nullable();
             $table->timestamps();
             $table->softDeletes(); // For archiving
 
