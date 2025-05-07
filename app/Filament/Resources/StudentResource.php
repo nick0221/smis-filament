@@ -131,6 +131,7 @@ class StudentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->queryStringIdentifier('students')
             ->recordUrl(fn (Model $record): string => route('filament.app.resources.students.view', ['record' => $record]))
             ->columns([
                 Tables\Columns\ImageColumn::make('image')
@@ -332,11 +333,8 @@ class StudentResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->withoutGlobalScopes();
+        return parent::getEloquentQuery()->whereNull('deleted_at');
     }
-
-
-
 
 
     public static function getRelations(): array

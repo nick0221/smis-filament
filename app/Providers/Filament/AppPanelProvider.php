@@ -24,6 +24,11 @@ class AppPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
+            ->brandLogoHeight('65px')
+            ->brandLogo(asset('images/logo/smis-logo.png'))
+            ->favicon(asset('images/logo/smis-icon.ico'))
+            ->maxContentWidth('full')
+            ->sidebarCollapsibleOnDesktop()
             ->spa()
             ->brandName('SMIS')
             ->id('app')
