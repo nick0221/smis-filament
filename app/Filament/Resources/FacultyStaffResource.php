@@ -121,39 +121,36 @@ class FacultyStaffResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('first_name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('middle_name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('last_name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('extension_name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('email')
-                    ->searchable(),
+                Tables\Columns\ImageColumn::make('photo_path')
+                    ->label('Photo')
+                    ->alignCenter()
+                    ->circular(),
+
+                Tables\Columns\TextColumn::make('full_name')
+                    ->description(fn ($record): string => $record->email)
+                    ->getStateUsing(fn ($record) => $record->full_name)
+                    ->searchable(['first_name', 'middle_name', 'last_name']),
+
+
                 Tables\Columns\TextColumn::make('phone')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('address')
+
+                Tables\Columns\TextColumn::make('designation.title')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('dob')
-                    ->date()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('gender')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('designation')
-                    ->searchable(),
+
                 Tables\Columns\TextColumn::make('department')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('photo_path')
-                    ->searchable(),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()

@@ -143,7 +143,6 @@ class StudentResource extends Resource
                 Tables\Columns\TextColumn::make('full_name')
                     ->wrap()
                     ->label('Full Name')
-
                     ->getStateUsing(fn ($record) => $record->full_name)
                     ->searchable(['first_name', 'middle_name', 'last_name'])
                     ->sortable(),
