@@ -5,6 +5,7 @@ namespace App\Filament\Resources\FacultyStaffResource\Pages;
 use App\Filament\Resources\FacultyStaffResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Support\Enums\MaxWidth;
 
 class ListFacultyStaff extends ListRecords
 {
@@ -14,6 +15,9 @@ class ListFacultyStaff extends ListRecords
     {
         return [
             Actions\CreateAction::make(),
+
+
+
         ];
     }
 }

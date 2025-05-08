@@ -2,10 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\FacultyStaff;
 use App\Models\User;
 use App\Models\Student;
+use App\Models\Department;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\FacultyStaff;
 use Illuminate\Database\Seeder;
 use Database\Seeders\DesignationSeeder;
 
@@ -22,6 +23,7 @@ class DatabaseSeeder extends Seeder
 
         // User::factory(10)->create();
         Student::factory(30)->create();
+        Department::factory()->count(10)->create();
         FacultyStaff::factory(10)->create();
 
         User::factory()->create([
