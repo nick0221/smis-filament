@@ -34,7 +34,7 @@ class EditStudent extends EditRecord
         return Notification::make()
             ->info()
             ->title('Confirmation')
-            ->body('Student (<b>'. strtoupper($this->getRecord()->first_name).' '.strtoupper($this->getRecord()->last_name). '</b>) was successfully updated.');
+            ->body('Student <b>'. strtoupper($this->getRecord()->first_name).' '.strtoupper($this->getRecord()->last_name). '</b> was successfully updated.');
     }
 
 }

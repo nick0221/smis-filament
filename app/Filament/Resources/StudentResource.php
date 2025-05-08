@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-
 use Filament\Tables;
 use App\Models\Student;
 use Filament\Forms\Form;
@@ -11,13 +10,11 @@ use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Forms\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Model;
-
 use Filament\Infolists\Components\Group;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Infolists\Components\Section;
-
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ImageEntry;
 use App\Filament\Resources\StudentResource\Pages;
@@ -25,8 +22,6 @@ use Filament\Infolists\Components\RepeatableEntry;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\StudentResource\RelationManagers;
 use Filament\Forms\Components\{Tabs,  Grid, TextInput, DatePicker, Select, FileUpload, Repeater, Textarea};
-
-
 
 class StudentResource extends Resource
 {
@@ -85,7 +80,8 @@ class StudentResource extends Resource
                                             TextInput::make('address'),
                                             TextInput::make('occupation'),
                                         ])
-                                        ->itemLabel(fn (array $state): ?string =>
+                                        ->itemLabel(
+                                            fn (array $state): ?string =>
                                             strtoupper($state['name'] ?? '') . ' - ' . strtoupper($state['relationship'] ?? '')
                                         )
                                         ->label('Family Details')
@@ -199,135 +195,129 @@ class StudentResource extends Resource
 
     public static function infolist(Infolist $infolist): Infolist
     {
-        return $infolist
-            ->schema([
-                Section::make('Student Profile')
-                    ->columns(2)
-                    ->schema([
-                        ImageEntry::make('image')
-                            ->label('Profile Photo')
-                            ->circular()
-                            ->hiddenLabel()
-                            ->columnSpan(1)
-                            ->defaultImageUrl(fn ($record) => $record->profile_photo_url),
+        return $infolist->schema([
+            \Filament\Infolists\Components\Tabs::make('Student Details')
+                ->columnSpanFull()
+                ->tabs([
+                    \Filament\Infolists\Components\Tabs\Tab::make('Profile')
+                        ->columns(2)
+                        ->schema([
+                            ImageEntry::make('image')
+                                ->label('Profile Photo')
+                                ->circular()
+                                ->height('100px')
+                                ->hiddenLabel()
+                                ->columnSpan(1)
+                                ->defaultImageUrl(fn ($record) => $record->profile_photo_url),
 
-                        TextEntry::make('full_name')
-                            ->label('Name')
-                            ->formatStateUsing(fn ($record) => $record->full_name)
-                            ->columnSpan(1),
-
-                        TextEntry::make('gender')
-                            ->label('Gender')
-                            ->formatStateUsing(fn ($record) => ucfirst($record->gender)),
-
-                        TextEntry::make('dob')
-                            ->label('Date of Birth')
-                            ->date(),
-
-                        TextEntry::make('email')
-                            ->label('Email'),
-
-                        TextEntry::make('age')
-                            ->label('Age')
-                            ->formatStateUsing(fn ($record) => $record->age ? $record->age . ' years old' : 'N/A'),
+                            TextEntry::make('full_name')
+                                ->label('Name')
+                                ->formatStateUsing(fn ($record) => $record->full_name)
+                                ->columnSpan(1),
 
 
-                        TextEntry::make('phone')
-                            ->label('Phone'),
+                            TextEntry::make('gender')
+                                ->label('Gender')
+                                ->formatStateUsing(fn ($record) => ucfirst($record->gender)),
 
-                        TextEntry::make('address')
-                            ->label('Address'),
-                    ]),
+                            TextEntry::make('dob')
+                                ->label('Date of Birth')
+                                ->date(),
 
-                Section::make('Family Information')
-                    ->persistCollapsed()
-                    ->collapsed()
-                    ->schema([
-                        Group::make()
-                            ->schema([
-                                TextEntry::make('no_family_members')
-                                    ->hiddenLabel()
-                                    ->visible(fn (Student $record): string => $record->familyMembers->isEmpty())
-                                    ->state('No family member information available.')
-                                    ->columnSpanFull()
-                                    ->alignCenter()
-                                    ->icon('heroicon-m-information-circle')
-                                    ->extraAttributes(['class' => 'italic'])
-                                    ->color('muted'),
+                            TextEntry::make('email')
+                                ->label('Email'),
 
-                                RepeatableEntry::make('familyMembers')
-                                    ->hiddenLabel()
-                                    ->visible(fn ($record) => !empty($record->familyMembers))
-                                    ->grid(['default' => 1, 'sm' => 2])
-                                    ->columns(2)
-                                    ->schema([
-                                        TextEntry::make('name')->label('Name'),
-                                        TextEntry::make('relationship')
-                                            ->formatStateUsing(fn ($record) => ucfirst($record->relationship))
-                                            ->label('Relationship'),
-                                        TextEntry::make('contact')->label('Contact'),
-                                        TextEntry::make('address')->columnSpanFull()->label('Address'),
-                                    ]),
-                            ])
-                    ]),
+                            TextEntry::make('age')
+                                ->label('Age')
+                                ->formatStateUsing(fn ($record) => $record->age ? $record->age . ' years old' : 'N/A'),
 
-                Section::make('Academic Information')
-                    ->persistCollapsed()
-                    ->collapsed()
-                    ->schema([
-                        Group::make()
-                            ->schema([
+                            TextEntry::make('phone')
+                                ->label('Phone'),
 
+                            TextEntry::make('address')
+                                ->label('Address'),
+                        ]),
 
+                    \Filament\Infolists\Components\Tabs\Tab::make('Family Info')
+                        ->schema([
+                            Group::make()
+                                ->schema([
+                                    TextEntry::make('no_family_members')
+                                        ->hiddenLabel()
+                                        ->visible(fn (Student $record): string => $record->familyMembers->isEmpty())
+                                        ->state('No family member information available.')
+                                        ->columnSpanFull()
+                                        ->alignCenter()
+                                        ->icon('heroicon-m-information-circle')
+                                        ->extraAttributes(['class' => 'italic'])
+                                        ->color('muted'),
 
-                            ])
-                    ]),
+                                    RepeatableEntry::make('familyMembers')
+                                        ->hiddenLabel()
+                                        ->visible(fn ($record) => !empty($record->familyMembers))
+                                        ->grid(['default' => 1, 'sm' => 2])
+                                        ->columns(2)
+                                        ->schema([
+                                            TextEntry::make('name')->label('Name'),
+                                            TextEntry::make('relationship')
+                                                ->formatStateUsing(fn ($record) => ucfirst($record->relationship))
+                                                ->label('Relationship'),
+                                            TextEntry::make('contact')->label('Contact'),
+                                            TextEntry::make('address')
+                                                ->columnSpanFull()
+                                                ->label('Address'),
+                                        ]),
+                                ]),
+                        ]),
 
-                Section::make('Documents')
-                    ->persistCollapsed()
-                    ->collapsed()
-                    ->schema([
-                        Group::make()
-                            ->schema([
-                                TextEntry::make('no_documents')
-                                    ->hiddenLabel()
-                                    ->visible(fn (Student $record): string => $record->documents->isEmpty())
-                                    ->state('No document information available.')
-                                    ->columnSpanFull()
-                                    ->alignCenter()
-                                    ->icon('heroicon-m-information-circle')
-                                    ->extraAttributes(['class' => 'italic'])
-                                    ->color('muted'),
+                    \Filament\Infolists\Components\Tabs\Tab::make('Academic Info')
+                        ->schema([
+                            Group::make()
+                                ->schema([
+                                    // Add academic info entries here if needed
+                                ]),
+                        ]),
 
-                                RepeatableEntry::make('documents')
-                                    ->contained(false)
-                                    ->hiddenLabel()
-                                    ->visible(fn ($record) => !empty($record->documents))
-                                    ->columns(3) // Adjusted to 3 columns for numbering
-                                    ->schema([
+                    \Filament\Infolists\Components\Tabs\Tab::make('Documents')
+                        ->schema([
+                            Group::make()
+                                ->schema([
+                                    TextEntry::make('no_documents')
+                                        ->hiddenLabel()
+                                        ->visible(fn (Student $record): string => $record->documents->isEmpty())
+                                        ->state('No document information available.')
+                                        ->columnSpanFull()
+                                        ->alignCenter()
+                                        ->icon('heroicon-m-information-circle')
+                                        ->extraAttributes(['class' => 'italic'])
+                                        ->color('muted'),
 
-                                        TextEntry::make('title')
-                                            ->label('Document Name'),
+                                    RepeatableEntry::make('documents')
+                                        ->contained(false)
+                                        ->hiddenLabel()
+                                        ->visible(fn ($record) => !empty($record->documents))
+                                        ->columns(3)
+                                        ->schema([
+                                            TextEntry::make('title')
+                                                ->label('Document Name'),
 
-                                        TextEntry::make('file_path')
-                                            ->label('View / Download')
-                                            ->url(fn ($record) => asset($record->file_path))
-                                            ->openUrlInNewTab()
-                                            ->state('View Document')
-                                            ->color('primary')
-                                            ->icon('heroicon-o-arrow-down-tray'),
+                                            TextEntry::make('file_path')
+                                                ->label('View / Download')
+                                                ->url(fn ($record) => asset($record->file_path))
+                                                ->openUrlInNewTab()
+                                                ->state('View Document')
+                                                ->color('primary')
+                                                ->icon('heroicon-o-arrow-down-tray'),
 
-                                        TextEntry::make('description')
-                                            ->label('Description'),
-
-                                ])
-
-
-                            ])
-                    ]),
-
-            ]);
+                                            TextEntry::make('description')
+                                                ->label('Description'),
+                                        ]),
+                                ]),
+                        ]),
+                ]),
+        ]);
     }
+
 
 
     public static function getEloquentQuery(): Builder
@@ -352,4 +342,18 @@ class StudentResource extends Resource
             'view' => Pages\ViewStudent::route('/{record}'),
         ];
     }
+
+
+
+    public static function getNavigationBadge(): ?string
+    {
+        $studentCount = static::getModel()::count();
+        if ($studentCount > 0) {
+            return $studentCount;
+        }
+
+        return null;
+
+    }
+
 }

@@ -109,8 +109,7 @@ class FacultyStaffResource extends Resource
                                 ->modalHeading('Add New Designation')
                                 ->modalWidth('sm')
                                 ->modalFooterActionsAlignment('end')
-
-                         ) ,
+                        ) ,
 
 
                     Forms\Components\TextInput::make('department')
@@ -193,18 +192,19 @@ class FacultyStaffResource extends Resource
                         ImageEntry::make('photo_path')
                             ->label('Profile Photo')
                             ->circular()
+                            ->height('100px')
                             ->hiddenLabel()
                             ->columnSpan(1)
-                            ->defaultImageUrl(fn ($record) => $record->profile_photo_url),
+                            ->defaultImageUrl(fn ($record): string => $record->profile_photo_url),
 
                         TextEntry::make('full_name')
                             ->label('Name')
-                            ->formatStateUsing(fn ($record) => $record->full_name)
+                            ->formatStateUsing(fn ($record): string => $record->full_name)
                             ->columnSpan(1),
 
                         TextEntry::make('gender')
                             ->label('Gender')
-                            ->formatStateUsing(fn ($record) => ucfirst($record->gender)),
+                            ->formatStateUsing(fn ($record): string => ucfirst($record->gender)),
 
                         TextEntry::make('dob')
                             ->label('Date of Birth')
@@ -212,7 +212,7 @@ class FacultyStaffResource extends Resource
 
                         TextEntry::make('age')
                             ->label('Age')
-                            ->formatStateUsing(fn ($record) => $record->age ? $record->age . ' years old' : 'N/A'),
+                            ->formatStateUsing(fn ($record): string => $record->age ? $record->age . ' years old' : 'N/A'),
 
 
                         TextEntry::make('address')
@@ -261,4 +261,16 @@ class FacultyStaffResource extends Resource
             'view' => Pages\ViewFacultyStaff::route('/{record}'),
         ];
     }
+
+
+    public static function getNavigationBadge(): ?string
+    {
+        $facultyStaffCount = static::getModel()::count();
+        if ($facultyStaffCount > 0) {
+            return $facultyStaffCount;
+        }
+
+        return null;
+    }
+
 }
