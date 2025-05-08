@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class FacultyStaff extends Model
 {
     /** @use HasFactory<\Database\Factories\FacultyStaffFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
 
     protected $fillable = [
@@ -48,8 +49,7 @@ class FacultyStaff extends Model
     public function getFullNameAttribute(): string
     {
         return collect([
-            ucfirst($this->last_name),
-            ',',
+            ucfirst($this->last_name).', ',
             ucfirst($this->first_name),
             ucfirst($this->middle_name),
             ucfirst($this->extension_name),

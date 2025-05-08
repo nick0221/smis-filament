@@ -29,6 +29,7 @@ class StudentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-square-3-stack-3d';
 
+
     public static function form(Form $form): Form
     {
         return $form
@@ -342,6 +343,34 @@ class StudentResource extends Resource
             'view' => Pages\ViewStudent::route('/{record}'),
         ];
     }
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return [
+            'first_name',
+            'last_name',
+        ];
+    }
+
+    public static function getGlobalSearchResultTitle($record): string
+    {
+        return $record->full_name;
+
+    }
+
+    public static function getGlobalSearchResultUrl($record): string
+    {
+        return StudentResource::getUrl('view', ['record' => $record]);
+    }
+
+
+
+
+    public static function getGlobalSearchResultDescription($record): string
+    {
+        return $record->email;
+    }
+
 
 
 
