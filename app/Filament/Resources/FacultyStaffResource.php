@@ -263,6 +263,35 @@ class FacultyStaffResource extends Resource
     }
 
 
+    public static function getGloballySearchableAttributes(): array
+    {
+        return [
+            'first_name',
+            'last_name',
+        ];
+    }
+
+    public static function getGlobalSearchResultTitle($record): string
+    {
+        return "{$record->full_name}";
+    }
+
+    public static function getGlobalSearchResultDetails($record): array
+    {
+        return [
+            'Email' => $record->email,
+            'Phone' => $record->phone,
+
+        ];
+    }
+
+    public static function getGlobalSearchResultUrl($record): string
+    {
+        return FacultyStaffResource::getUrl('view', ['record' => $record]);
+    }
+
+
+
     public static function getNavigationBadge(): ?string
     {
         $facultyStaffCount = static::getModel()::count();

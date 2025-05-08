@@ -29,6 +29,7 @@ class StudentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-square-3-stack-3d';
 
+    protected static int $globalSearchResultsLimit = 5;
 
     public static function form(Form $form): Form
     {
@@ -354,8 +355,16 @@ class StudentResource extends Resource
 
     public static function getGlobalSearchResultTitle($record): string
     {
-        return $record->full_name;
+        return "{$record->full_name}";
+    }
 
+    public static function getGlobalSearchResultDetails($record): array
+    {
+        return [
+            'Email' => $record->email,
+            'Phone' => $record->phone,
+
+        ];
     }
 
     public static function getGlobalSearchResultUrl($record): string
@@ -365,11 +374,6 @@ class StudentResource extends Resource
 
 
 
-
-    public static function getGlobalSearchResultDescription($record): string
-    {
-        return $record->email;
-    }
 
 
 
