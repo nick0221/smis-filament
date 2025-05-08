@@ -16,6 +16,8 @@ class ListDesignations extends ListRecords
     {
         return [
             Actions\CreateAction::make()
+                ->icon('heroicon-o-plus')
+                ->label('Create')
                 ->form([
                     TextInput::make('title')
                         ->unique(ignoreRecord: true)

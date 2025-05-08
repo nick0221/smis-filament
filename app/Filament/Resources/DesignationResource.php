@@ -20,7 +20,7 @@ class DesignationResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    protected static ?string $navigationGroup = 'System Configuration';
+    protected static ?string $navigationGroup = 'Settings';
 
 
 
