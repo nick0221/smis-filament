@@ -45,6 +45,11 @@ class FacultyStaff extends Model
         return $this->belongsTo(Designation::class);
     }
 
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
+    }
+
 
     public function getFullNameAttribute(): string
     {

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use Dom\Text;
 use Filament\Forms;
 use Filament\Tables;
 use Filament\Forms\Form;
@@ -10,6 +11,7 @@ use App\Models\FacultyStaff;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Infolists\Components\Section;
 use Filament\Support\View\Components\Modal;
@@ -18,7 +20,6 @@ use Filament\Infolists\Components\ImageEntry;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\FacultyStaffResource\Pages;
 use App\Filament\Resources\FacultyStaffResource\RelationManagers;
-use Dom\Text;
 
 class FacultyStaffResource extends Resource
 {
@@ -112,8 +113,47 @@ class FacultyStaffResource extends Resource
                         ) ,
 
 
-                    Forms\Components\TextInput::make('department')
-                        ->label('Department'),
+                    Forms\Components\Select::make('department')
+                        ->relationship('department', 'name')
+                        ->searchable()
+                        ->preload()
+                        ->label('Department')
+                        ->required()
+                        ->createOptionForm([
+                            Forms\Components\TextInput::make('name')
+                                ->placeholder('Enter Department Name')
+                                ->required(),
+                            Forms\Components\TextInput::make('code')
+                                ->placeholder('Enter Department Code'),
+                        ])
+                        ->editOptionForm([
+                            Forms\Components\TextInput::make('name')
+
+                                ->required(),
+
+                            Forms\Components\TextInput::make('code'),
+                        ])
+                        ->createOptionAction(
+                            fn (\Filament\Forms\Components\Actions\Action $action) => $action
+                                ->label('Create Department')
+                                ->modalSubmitActionLabel('Save')
+                                ->modalHeading('Add New Department')
+                                ->modalWidth('md')
+                                ->modalFooterActionsAlignment('end')
+                        )
+                        ->editOptionAction(
+                            fn (\Filament\Forms\Components\Actions\Action $action) => $action
+                                ->label('Edit Department')
+                                ->modalSubmitActionLabel('Save Changes')
+                                ->modalHeading('Edit Department')
+                                ->modalWidth('md')
+                                ->modalFooterActionsAlignment('end')
+                        ),
+
+
+
+
+
                     Forms\Components\FileUpload::make('photo_path')
                         ->label('Photo')
                         ->image()
@@ -132,7 +172,7 @@ class FacultyStaffResource extends Resource
             ->columns([
                 Tables\Columns\ImageColumn::make('photo_path')
                     ->defaultImageUrl(fn ($record): string => $record->profile_photo_url)
-                    ->label('Photo')
+                    ->label('IMG')
                     ->alignCenter()
                     ->circular(),
 
