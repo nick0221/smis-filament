@@ -2,17 +2,23 @@
 
 namespace App\Filament\Resources;
 
+use Filament\Forms;
+use Filament\Tables;
+use Filament\Forms\Form;
+use Filament\Tables\Table;
+use App\Models\FacultyStaff;
+use Filament\Infolists\Infolist;
+use Filament\Resources\Resource;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Infolists\Components\Section;
+use Filament\Support\View\Components\Modal;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ImageEntry;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\FacultyStaffResource\Pages;
 use App\Filament\Resources\FacultyStaffResource\RelationManagers;
-use App\Models\FacultyStaff;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Support\View\Components\Modal;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Dom\Text;
 
 class FacultyStaffResource extends Resource
 {
@@ -120,15 +126,22 @@ class FacultyStaffResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->deferLoading()
+            ->defaultSort('last_name', 'asc')
+            ->queryStringIdentifier('faculty_staff')
+            ->recordUrl(fn (Model $record): string => route('filament.app.resources.faculty-staffs.view', ['record' => $record]))
             ->columns([
                 Tables\Columns\ImageColumn::make('photo_path')
+                    ->defaultImageUrl(fn ($record): string => $record->profile_photo_url)
                     ->label('Photo')
                     ->alignCenter()
                     ->circular(),
 
                 Tables\Columns\TextColumn::make('full_name')
+                    ->label('Name')
                     ->description(fn ($record): string => $record->email)
-                    ->getStateUsing(fn ($record) => $record->full_name)
+                    ->getStateUsing(fn ($record): string => $record->full_name)
+                    ->sortable(['last_name'])
                     ->searchable(['first_name', 'middle_name', 'last_name']),
 
 
@@ -169,6 +182,69 @@ class FacultyStaffResource extends Resource
             ]);
     }
 
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Section::make('Personal Information')
+                    ->columns(2)
+                    ->schema([
+                        ImageEntry::make('photo_path')
+                            ->label('Profile Photo')
+                            ->circular()
+                            ->hiddenLabel()
+                            ->columnSpan(1)
+                            ->defaultImageUrl(fn ($record) => $record->profile_photo_url),
+
+                        TextEntry::make('full_name')
+                            ->label('Name')
+                            ->formatStateUsing(fn ($record) => $record->full_name)
+                            ->columnSpan(1),
+
+                        TextEntry::make('gender')
+                            ->label('Gender')
+                            ->formatStateUsing(fn ($record) => ucfirst($record->gender)),
+
+                        TextEntry::make('dob')
+                            ->label('Date of Birth')
+                            ->date(),
+
+                        TextEntry::make('age')
+                            ->label('Age')
+                            ->formatStateUsing(fn ($record) => $record->age ? $record->age . ' years old' : 'N/A'),
+
+
+                        TextEntry::make('address')
+                            ->label('Address'),
+
+
+                    ]),
+                Section::make('Contact Information')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('phone'),
+
+                        TextEntry::make('email')
+                            ->label('Email'),
+
+                    ]),
+
+                Section::make('Professional Details')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('designation.title')
+                            ->label('Designation'),
+
+                        TextEntry::make('department')
+                            ->label('Department'),
+
+
+                    ])
+            ]);
+    }
+
+
     public static function getRelations(): array
     {
         return [
@@ -182,6 +258,7 @@ class FacultyStaffResource extends Resource
             'index' => Pages\ListFacultyStaff::route('/'),
             'create' => Pages\CreateFacultyStaff::route('/create'),
             'edit' => Pages\EditFacultyStaff::route('/{record}/edit'),
+            'view' => Pages\ViewFacultyStaff::route('/{record}'),
         ];
     }
 }

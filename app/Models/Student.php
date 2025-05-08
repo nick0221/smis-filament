@@ -51,9 +51,10 @@ class Student extends Model
     public function getFullNameAttribute(): string
     {
         return collect([
+            ucfirst($this->last_name),
+            ',',
             ucfirst($this->first_name),
             ucfirst($this->middle_name),
-            ucfirst($this->last_name),
             ucfirst($this->extension_name),
         ])->filter()->join(' ');
 

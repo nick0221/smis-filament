@@ -21,20 +21,21 @@ class FacultyStaffFactory extends Factory
         $initials = strtoupper(substr($firstname, 0, 1) . substr($lastname, 0, 1));
         $textColor = substr(md5(rand()), 0, 6); // e.g., 'a1b2c3'
 
+
         return [
              'first_name' => $firstname,
-             'middle_name' => fake()->firstName(),
-             'last_name' => fake()->lastName(),
-             'extension_name' => $lastname,
+             'middle_name' => fake()->lastName(),
+             'last_name' => $lastname,
+             'extension_name' => fake()->randomElement(['Jr.', 'Sr.', 'I', 'II', 'III', '']),
              'dob' => fake()->date(),
              'gender' => fake()->randomElement(['male', 'female']),
              'phone' => fake()->phoneNumber(),
              'email' => fake()->unique()->safeEmail(),
              'address' => fake()->address(),
              'user_id' => fake()->numberBetween(1, 10),
-             'designation_id' => fake()->numberBetween(1, 10),
+             'designation_id' => fake()->numberBetween(1, 7),
              'department' => fake()->company(),
-             'photo_path' => fn () => "https://placehold.co/600x400/eeeeee/{$textColor}?font=roboto&text=" . $initials,
+             'photo_path' => fn () => "https://placehold.co/600x400/eeeeee/grey?font=roboto&text=" . $initials,
 
         ];
     }

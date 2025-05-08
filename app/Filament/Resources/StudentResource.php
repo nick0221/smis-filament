@@ -131,6 +131,7 @@ class StudentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('last_name', 'asc')
             ->queryStringIdentifier('students')
             ->recordUrl(fn (Model $record): string => route('filament.app.resources.students.view', ['record' => $record]))
             ->columns([
@@ -142,10 +143,10 @@ class StudentResource extends Resource
 
                 Tables\Columns\TextColumn::make('full_name')
                     ->wrap()
-                    ->label('Full Name')
+                    ->label('Name')
                     ->getStateUsing(fn ($record) => $record->full_name)
                     ->searchable(['first_name', 'middle_name', 'last_name'])
-                    ->sortable(),
+                    ->sortable(['last_name']),
 
                 Tables\Columns\TextColumn::make('dob')
                     ->label('Date of Birth')
@@ -192,7 +193,6 @@ class StudentResource extends Resource
             ->emptyStateActions([
                 Tables\Actions\CreateAction::make(),
             ])
-            ->defaultSort('created_at', 'desc')
             ->deferLoading();
     }
 
