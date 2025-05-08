@@ -1,13 +1,13 @@
 <?php
 
+use App\Models\Department;
 use App\Models\User;
 use App\Models\Designation;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migrations.
      */
@@ -25,7 +25,7 @@ return new class extends Migration
             $table->date('dob')->nullable();
             $table->enum('gender', ['male', 'female']);
             $table->foreignIdFor(Designation::class)->onDelete('set null')->nullable();
-            $table->string('department')->nullable();
+            $table->foreignIdFor(Department::class)->onDelete('set null')->nullable();
             $table->string('photo_path')->nullable();
             $table->foreignIdFor(User::class, 'created_by')->onDelete('cascade')->nullable();
             $table->foreignIdFor(User::class, 'last_updated_by')->onDelete('cascade')->nullable();

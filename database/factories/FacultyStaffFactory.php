@@ -34,7 +34,7 @@ class FacultyStaffFactory extends Factory
              'address' => fake()->address(),
              'user_id' => fake()->numberBetween(1, 10),
              'designation_id' => fake()->numberBetween(1, 7),
-             'department' => fake()->company(),
+             'department_id' => fake()->numberBetween(1, 10),
              'photo_path' => fn () => "https://placehold.co/600x400/eeeeee/grey?font=roboto&text=" . $initials,
 
         ];

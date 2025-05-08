@@ -36,6 +36,7 @@ class DesignationResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->queryStringIdentifier('designations')
             ->defaultSort('created_at', 'desc')
             ->deferLoading()
             ->columns([
@@ -74,9 +75,9 @@ class DesignationResource extends Resource
                     ),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                // Tables\Actions\BulkActionGroup::make([
+                //     Tables\Actions\DeleteBulkAction::make(),
+                // ]),
             ]);
     }
 

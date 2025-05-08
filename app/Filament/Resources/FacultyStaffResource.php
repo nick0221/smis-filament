@@ -11,10 +11,8 @@ use App\Models\FacultyStaff;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\Model;
-use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Infolists\Components\Section;
-use Filament\Support\View\Components\Modal;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\ImageEntry;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -26,6 +24,8 @@ class FacultyStaffResource extends Resource
     protected static ?string $model = FacultyStaff::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+
 
     public static function form(Form $form): Form
     {
@@ -48,12 +48,13 @@ class FacultyStaffResource extends Resource
                     Forms\Components\TextInput::make('extension_name')
                         ->label('Extension (e.g. Jr., Sr.)'),
                     Forms\Components\DatePicker::make('dob')
+                        ->maxDate(now())
                         ->label('Date of Birth'),
                     Forms\Components\Select::make('gender')
                         ->options([
                             'male' => 'Male',
                             'female' => 'Female',
-                            'other' => 'Other',
+
                         ])
                         ->required(),
                 ]),
@@ -113,8 +114,8 @@ class FacultyStaffResource extends Resource
                         ) ,
 
 
-                    Forms\Components\Select::make('department')
-                        ->relationship('department', 'name')
+                    Forms\Components\Select::make('department_id')
+                        ->relationship('department', 'name', fn ($query) => $query->orderBy('name', 'asc'))
                         ->searchable()
                         ->preload()
                         ->label('Department')
@@ -149,8 +150,6 @@ class FacultyStaffResource extends Resource
                                 ->modalWidth('md')
                                 ->modalFooterActionsAlignment('end')
                         ),
-
-
 
 
 
@@ -190,7 +189,7 @@ class FacultyStaffResource extends Resource
                 Tables\Columns\TextColumn::make('designation.title')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('department')
+                Tables\Columns\TextColumn::make('department.name')
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('created_at')
@@ -215,9 +214,9 @@ class FacultyStaffResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                // Tables\Actions\BulkActionGroup::make([
+                //     Tables\Actions\DeleteBulkAction::make(),
+                // ]),
             ]);
     }
 
@@ -254,7 +253,6 @@ class FacultyStaffResource extends Resource
                             ->label('Age')
                             ->formatStateUsing(fn ($record): string => $record->age ? $record->age . ' years old' : 'N/A'),
 
-
                         TextEntry::make('address')
                             ->label('Address'),
 
@@ -276,13 +274,14 @@ class FacultyStaffResource extends Resource
                         TextEntry::make('designation.title')
                             ->label('Designation'),
 
-                        TextEntry::make('department')
+                        TextEntry::make('department.name')
                             ->label('Department'),
 
 
                     ])
             ]);
     }
+
 
 
     public static function getRelations(): array

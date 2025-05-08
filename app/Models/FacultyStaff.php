@@ -26,7 +26,7 @@ class FacultyStaff extends Model
         'dob',
         'gender',
         'designation',
-        'department',
+        'department_id',
         'photo_path',
         'user_id',
         'last_updated_by',

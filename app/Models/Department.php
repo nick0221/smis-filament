@@ -21,4 +21,7 @@ class Department extends Model
         return $this->hasMany(FacultyStaff::class);
     }
 
+
+
+
 }

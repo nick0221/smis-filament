@@ -35,6 +35,8 @@ class DepartmentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->queryStringIdentifier('departments')
+            ->defaultSort('name', 'asc')
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
@@ -75,9 +77,9 @@ class DepartmentResource extends Resource
 
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                // Tables\Actions\BulkActionGroup::make([
+                //     Tables\Actions\DeleteBulkAction::make(),
+                // ]),
             ]);
     }
 
