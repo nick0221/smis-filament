@@ -56,6 +56,7 @@ class GradeLevelResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->icon('heroicon-o-pencil-square')
+                    ->color('success')
                     ->size('sm')
                     ->label('Edit')
                     ->form([

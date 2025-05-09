@@ -21,6 +21,7 @@ class ListGradeLevels extends ListRecords
                 ->label('Create New')
                 ->form([
                     TextInput::make('grade_name')
+                        ->unique(ignoreRecord: true)
                         ->required(),
                 ])
                 ->modalHeading('Create New Grade Level')

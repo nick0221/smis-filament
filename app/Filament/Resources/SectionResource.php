@@ -2,16 +2,17 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\SectionResource\Pages;
-use App\Filament\Resources\SectionResource\RelationManagers;
-use App\Models\Section;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use App\Models\Section;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Resources\Resource;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Resources\SectionResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\SectionResource\RelationManagers;
 
 class SectionResource extends Resource
 {
@@ -50,12 +51,31 @@ class SectionResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->icon('heroicon-o-pencil-square')
+                    ->color('success')
+                    ->size('sm')
+                    ->form([
+                        Forms\Components\TextInput::make('section_name')
+                            ->unique(ignoreRecord: true)
+                            ->required(),
+                    ])
+                    ->modalHeading('Edit Section')
+                    ->modalFooterActionsAlignment('end')
+                    ->closeModalByClickingAway(false)
+                    ->modalCancelAction(false)
+                    ->modalWidth('md')
+                    ->successNotification(
+                        Notification::make()
+                        ->success()
+                        ->title('Confirmation')
+                        ->body('Section successfully updated.')
+                    ),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                // Tables\Actions\BulkActionGroup::make([
+                //     Tables\Actions\DeleteBulkAction::make(),
+                // ]),
             ]);
     }
 
