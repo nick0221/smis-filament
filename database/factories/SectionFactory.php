@@ -26,6 +26,7 @@ class SectionFactory extends Factory
 
         return [
             'section_name' => $this->faker->unique()->randomElement($gemstoneNames),
+            'grade_level_id' => fake()->numberBetween(1, 10),
         ];
     }
 }

@@ -27,7 +27,7 @@ class GradeLevelResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('grade_name')
-                    ->unique()
+                    ->unique(ignoreRecord: true)
                     ->required(),
             ]);
     }
@@ -41,6 +41,11 @@ class GradeLevelResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('grade_name')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('sections_count')
+                    ->label('Sections')
+                    ->counts('sections')
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -86,7 +91,7 @@ class GradeLevelResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+             GradeLevelResource\RelationManagers\SectionsRelationManager::class
         ];
     }
 
@@ -94,8 +99,8 @@ class GradeLevelResource extends Resource
     {
         return [
             'index' => Pages\ListGradeLevels::route('/'),
-            // 'create' => Pages\CreateGradeLevel::route('/create'),
-            // 'edit' => Pages\EditGradeLevel::route('/{record}/edit'),
+            'create' => Pages\CreateGradeLevel::route('/create'),
+            'edit' => Pages\EditGradeLevel::route('/{record}/edit'),
         ];
     }
 }

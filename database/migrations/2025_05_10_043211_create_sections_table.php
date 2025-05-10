@@ -14,8 +14,9 @@ return new class () extends Migration {
     {
         Schema::create('sections', function (Blueprint $table) {
             $table->id();
-            $table->string('section_name')->unique();
-
+            $table->string('section_name');
+            $table->foreignId('grade_level_id')->onDelete('cascade')->nullable();
+            $table->unique(['section_name', 'grade_level_id']);
             $table->timestamps();
         });
     }

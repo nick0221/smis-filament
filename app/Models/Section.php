@@ -16,10 +16,14 @@ class Section extends Model
 
     protected $fillable = [
         'section_name',
+        'grade_level_id'
 
     ];
 
-
+    public function gradeLevel(): BelongsTo
+    {
+        return $this->belongsTo(GradeLevel::class);
+    }
 
 
 }
