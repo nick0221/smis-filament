@@ -1,11 +1,11 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use App\Models\FacultyStaff;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migrations.
      */
@@ -13,10 +13,16 @@ return new class extends Migration
     {
         Schema::create('class_rooms', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // e.g., "Grade 10 - A"
-            $table->string('code')->unique(); // optional class code
-            $table->foreignId('teacher_id')->nullable()->constrained()->nullOnDelete(); // class teacher
+            $table->string('room_name'); // e.g., "Grade 1 - Ruby"
+            $table->string('room_number')->nullable();
+            $table->foreignId('section_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('grade_level_id')->nullable()->constrained()->nullOnDelete();
+            $table->string('average_grade_from')->nullable();
+            $table->string('average_grade_to')->nullable();
+            $table->string('criteria_description')->nullable();
+            $table->foreignIdFor(FacultyStaff::class)->constrained()->onDelete('cascade')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

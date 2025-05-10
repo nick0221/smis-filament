@@ -6,15 +6,24 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ClassRoom extends Model
 {
     /** @use HasFactory<\Database\Factories\ClassRoomFactory> */
     use HasFactory;
+    use SoftDeletes;
     protected $fillable = [
-        'name',
-        'code',
-        'teacher_id',
+        'room_name',
+        'room_number',
+        'section_id',
+        'grade_level_id',
+        'average_grade_from',
+        'average_grade_to',
+        'criteria_description',
+        'faculty_staff_id',
+
+
     ];
 
     public function students(): HasMany
@@ -22,9 +31,23 @@ class ClassRoom extends Model
         return $this->hasMany(Student::class);
     }
 
-    public function teacher(): BelongsTo
+    public function section(): BelongsTo
     {
-        return $this->belongsTo(Teacher::class);
+        return $this->belongsTo(Section::class);
     }
+
+    public function gradeLevel(): BelongsTo
+    {
+        return $this->belongsTo(GradeLevel::class);
+    }
+
+    public function adviser(): BelongsTo
+    {
+        return $this->belongsTo(FacultyStaff::class);
+    }
+
+
+
+
 
 }

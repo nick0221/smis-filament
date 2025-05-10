@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\FacultyStaff;
+use App\Models\GradeLevel;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,6 +15,7 @@ return new class () extends Migration {
         Schema::create('sections', function (Blueprint $table) {
             $table->id();
             $table->string('section_name')->unique();
+
             $table->timestamps();
         });
     }

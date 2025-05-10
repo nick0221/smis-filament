@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Section extends Model
 {
@@ -14,19 +16,8 @@ class Section extends Model
 
     protected $fillable = [
         'section_name',
+
     ];
-
-
-
-    public function teachers()
-    {
-        return $this->hasMany(FacultyStaff::class);
-    }
-
-    public function students()
-    {
-        return $this->hasMany(Student::class);
-    }
 
 
 

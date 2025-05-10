@@ -29,6 +29,8 @@ class SectionResource extends Resource
                 Forms\Components\TextInput::make('section_name')
                     ->unique(ignoreRecord: true)
                     ->required(),
+
+
             ]);
     }
 
