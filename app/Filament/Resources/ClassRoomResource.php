@@ -5,19 +5,21 @@ namespace App\Filament\Resources;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Tables;
+use App\Models\Section;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Forms\Form;
 use App\Models\ClassRoom;
+use App\Models\GradeLevel;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
+use Filament\Forms\FormsComponent;
+use Filament\Forms\Components\Select;
+use Illuminate\Database\Eloquent\Model;
+use Filament\Forms\Components\TextInput;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\ClassRoomResource\Pages;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\ClassRoomResource\RelationManagers;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\FormsComponent;
-use Illuminate\Database\Eloquent\Model;
 
 class ClassRoomResource extends Resource
 {
@@ -31,68 +33,83 @@ class ClassRoomResource extends Resource
 
         return $form
             ->schema([
-                Forms\Components\Select::make('grade_level_id')
-                        ->label('Grade Level')
-                        ->relationship(
-                            'gradeLevel',
-                            'grade_name',
-                            modifyQueryUsing: fn (Builder $query) => $query->orderBy('grade_name')
-                        )
-                        ->live()
-                        ->afterStateUpdated(function (Set $set, Get $get) {
-                            $grade = $get('grade_level_id');
-                            $section = $get('section_id');
-                            if ($grade && $section) {
-                                $gradeName = \App\Models\GradeLevel::find($grade)?->grade_name;
-                                $sectionName = \App\Models\Section::find($section)?->section_name;
-                                $set('room_name', "{$gradeName} - {$sectionName}");
-                            }
-                        }),
 
-                Forms\Components\Select::make('section_id')
-                        ->label('Section')
-                        ->relationship(
-                            'section',
-                            'section_name',
-                            modifyQueryUsing: fn (Builder $query) => $query->orderBy('section_name')
-                        )
-                        ->live()
-                        ->afterStateUpdated(function (Set $set, Get $get) {
-                            $grade = $get('grade_level_id');
-                            $section = $get('section_id');
-                            if ($grade && $section) {
-                                $gradeName = \App\Models\GradeLevel::find($grade)?->grade_name;
-                                $sectionName = \App\Models\Section::find($section)?->section_name;
-                                $set('room_name', "{$gradeName} - {$sectionName}");
-                            }
-                        }),
+                Select::make('grade_level_id')
 
-                Forms\Components\TextInput::make('room_name')
-                        ->label('Room Name')
-                        ->required()
-                        ->readOnly(), // prevent manual input
+                    ->required()
+                    ->label('Grade Level')
+                    ->relationship(
+                        'gradeLevel',
+                        'grade_name',
+                        modifyQueryUsing: fn (Builder $query) => $query->orderBy('grade_name')
+                    )
+                    ->live()
+                    ->afterStateUpdated(function (Set $set, Get $get) {
+                        $set('section_id', null); // Reset section when grade changes
+                        $grade = $get('grade_level_id');
+                        $section = $get('section_id');
+                        if ($grade && $section) {
+                            $gradeName = GradeLevel::find($grade)?->grade_name;
+                            $sectionName = Section::find($section)?->section_name;
+                            $set('room_name', "{$gradeName} - {$sectionName}");
+                        }
+                    }),
 
-                Forms\Components\TextInput::make('room_number')
-                        ->default(fn () => Classroom::count() + 1),
+                Select::make('section_id')
+                    ->required()
+                    ->label('Section')
+                    ->options(function (Get $get) {
+                        $gradeId = $get('grade_level_id');
+                        if (!$gradeId) {
+                            return [];
+                        }
 
-                Forms\Components\Select::make('faculty_staff_id')
-                        ->relationship('adviser', 'full_name', modifyQueryUsing: fn (Builder $query) => $query->orderBy('last_name', 'asc'))
-                        ->label('Adviser')
-                        ->getOptionLabelFromRecordUsing(fn ($record) => $record->full_name)
-                        ->searchable(['first_name', 'middle_name', 'last_name'])
-                        ->preload()
-                        ->searchable(),
+                        return Section::where('grade_level_id', $gradeId)
+                            ->orderBy('section_name')
+                            ->pluck('section_name', 'id')
+                            ->toArray();
+                    })
+                    ->live()
+                    ->afterStateUpdated(function (Set $set, Get $get) {
+                        $grade = $get('grade_level_id');
+                        $section = $get('section_id');
+                        if ($grade && $section) {
+                            $gradeName = GradeLevel::find($grade)?->grade_name;
+                            $sectionName = Section::find($section)?->section_name;
+                            $set('room_name', "{$gradeName} - {$sectionName}");
+                        }
+                    }),
 
-                Forms\Components\TextInput::make('average_grade_from')
-                        ->label('Average Grade From')
-                        ->numeric(2),
+                TextInput::make('room_name')
+                    ->label('Room Name')
+                    ->required()
+                    ->readOnly(),
 
-                Forms\Components\TextInput::make('average_grade_to')
-                        ->label('Average Grade To')
-                        ->numeric(2),
+                TextInput::make('room_number')
+                    ->default(fn () => Classroom::count() + 1),
 
-                Forms\Components\TextInput::make('criteria_description')
+                Select::make('faculty_staff_id')
+                    ->relationship('adviser', 'full_name', modifyQueryUsing: fn (Builder $query) => $query->orderBy('last_name'))
+                    ->label('Adviser')
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->full_name)
+                    ->searchable(['first_name', 'middle_name', 'last_name'])
+                    ->preload()
+                    ->required()
+                    ->searchable(),
 
+                TextInput::make('average_grade_from')
+                    ->label('Average Grade From')
+                    ->required()
+                    ->numeric(2),
+
+                TextInput::make('average_grade_to')
+                    ->label('Average Grade To')
+                    ->required()
+                    ->numeric(2),
+
+                TextInput::make('criteria_description')
+                    ->label('Criteria Description')
+                    ->maxLength(255),
 
 
             ]);
@@ -106,11 +123,15 @@ class ClassRoomResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('room_number')
                     ->searchable(),
+
+                Tables\Columns\TextColumn::make('gradeLevel.id')
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('section.section_name')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('gradeLevel.id')
-                    ->numeric()
+
+                Tables\Columns\TextColumn::make('adviser.full_name')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('created_at')

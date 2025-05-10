@@ -43,7 +43,7 @@ class ClassRoom extends Model
 
     public function adviser(): BelongsTo
     {
-        return $this->belongsTo(FacultyStaff::class);
+        return $this->belongsTo(FacultyStaff::class, 'faculty_staff_id');
     }
 
 

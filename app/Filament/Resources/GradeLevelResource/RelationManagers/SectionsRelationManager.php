@@ -35,6 +35,7 @@ class SectionsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->recordUrl(false)
             ->deferLoading()
             ->queryStringIdentifier('sections')
             ->recordTitleAttribute('section_name')
@@ -78,7 +79,34 @@ class SectionsRelationManager extends RelationManager
                     ),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->color('success')
+                    ->form([
+                        TextInput::make('section_name')
+                            ->label('Section Name')
+                            ->rules(function (?Section $record) {
+                                // Get the parent grade_level_id from the relation manager
+                                $gradeLevelId = $this->getOwnerRecord()->id ?? null;
+                                return [
+                                    Rule::unique('sections', 'section_name')
+                                        ->where(fn ($query) => $query->where('grade_level_id', $gradeLevelId))
+                                        ->ignore($record),
+                                ];
+                            })
+                            ->required()
+                    ])
+                    ->modalHeading('Edit Section')
+                    ->modalFooterActionsAlignment('end')
+                    ->closeModalByClickingAway(false)
+                    ->modalCancelAction(false)
+                    ->modalWidth('md')
+                    ->successNotification(
+                        Notification::make()
+                        ->success()
+                        ->title('Confirmation')
+                        ->body('Section successfully updated.')
+                    )
+                    ,
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

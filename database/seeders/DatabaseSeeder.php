@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
         Department::factory()->count(10)->create();
         FacultyStaff::factory(10)->create();
 
-        Section::factory()->count(10)->create();
+        Section::factory()->count(30)->create();
         // GradeLevel::factory()->count(10)->create();
 
         User::factory()->create([

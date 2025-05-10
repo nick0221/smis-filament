@@ -22,6 +22,8 @@ class GradeLevelResource extends Resource
 
     protected static ?string $navigationGroup = 'Settings';
 
+    protected static ?string $navigationLabel = 'Grade & Section';
+
     public static function form(Form $form): Form
     {
         return $form
@@ -42,8 +44,10 @@ class GradeLevelResource extends Resource
                 Tables\Columns\TextColumn::make('grade_name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('sections_count')
-                    ->label('Sections')
+                    ->label('Total number of sections')
                     ->counts('sections')
+                    ->color(fn ($record): string => $record->sections_count > 0 ? 'primary' : 'danger')
+                    ->badge()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('created_at')
