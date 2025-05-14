@@ -22,6 +22,8 @@ class ClassRoom extends Model
         'average_grade_to',
         'criteria_description',
         'faculty_staff_id',
+        'school_year_from',
+        'school_year_to',
 
 
     ];

@@ -26,4 +26,15 @@ class Section extends Model
     }
 
 
+    public function scopeNotAssignedToClassroom($query)
+    {
+        return $query->whereNotIn('id', function ($subquery) {
+            $subquery->select('section_id')
+                    ->from('class_rooms')
+                    ->whereNotNull('section_id');
+        });
+    }
+
+
+
 }

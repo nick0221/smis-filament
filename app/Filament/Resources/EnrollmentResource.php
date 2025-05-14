@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\EnrollmentResource\Pages;
 use App\Filament\Resources\EnrollmentResource\RelationManagers;
 use Dom\Text;
+use Filament\Forms\Get;
 
 class EnrollmentResource extends Resource
 {
@@ -38,30 +39,41 @@ class EnrollmentResource extends Resource
                     ->preload()
                     ->required(),
 
+                Forms\Components\TextInput::make('initial_average_grade')
+                    ->label('Average Grade')
+                    ->live()
+                    ->afterStateUpdated(fn (Set $set, ?string $state) => $state ? $set('section_id', null) : null),
+
                 Forms\Components\Select::make('grade_level_id')
-                    ->preload()
-                    ->searchable()
-                    ->relationship('gradeLevel', 'grade_name', modifyQueryUsing: fn (Builder $query) => $query->orderBy('grade_name', 'asc'))
+                    ->relationship('gradeLevel', 'grade_name')
+                    ->label('Grade level')
+                    ->live()
                     ->required(),
 
                 Forms\Components\Select::make('section_id')
-                    ->relationship('section', 'section_name', modifyQueryUsing: fn (Builder $query) => $query->orderBy('section_name', 'asc')),
+                    ->relationship('section', 'section_name', modifyQueryUsing: fn (Builder $query, Get $get) => $query->where('grade_level_id', $get('grade_level_id'))->orderBy('section_name', 'asc'))
+                    ->label('Section')
+                    ->disabled(fn (Get $get) => $get('initial_average_grade'))
+                    ->required(fn (Get $get) => !$get('initial_average_grade')),
+
 
                 Forms\Components\Select::make('school_year_from')
-                        ->preload()
-                        ->searchable()
-                        ->label('From')
-                        ->default($currentYear)
-                        ->options($yearOptions)
-                        ->live()
-                        ->required()
-                        ->afterStateUpdated(fn (Set $set, ?string $state) => $set('school_year_to', $state + 1)),
+                    ->preload()
+                    ->searchable()
+                    ->label('From')
+                    ->default($currentYear)
+                    ->options($yearOptions)
+                    ->live()
+                    ->required()
+                    ->afterStateUpdated(fn (Set $set, ?string $state) => $set('school_year_to', $state + 1)),
 
                 Forms\Components\TextInput::make('school_year_to')
-                        ->label('To')
-                        ->default($currentYear + 1)
-                        ->readOnly()
-                        ->required(),
+                    ->label('To')
+                    ->default($currentYear + 1)
+                    ->readOnly()
+                    ->required(),
+
+
 
 
             ]);
@@ -71,24 +83,29 @@ class EnrollmentResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('student.id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('student_name')
+                    ->getStateUsing(fn ($record): string => $record->student->full_name)
                     ->sortable(),
-                Tables\Columns\TextColumn::make('gradeLevel.id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('section.id')
-                    ->numeric()
-                    ->sortable(),
+
+
+                Tables\Columns\TextColumn::make('classroom.room_name')
+                    ->searchable(),
+
+
                 Tables\Columns\TextColumn::make('school_year')
-                    ->numeric()
+                    ->getStateUsing(fn ($record): string => $record->school_year_from.' - '.$record->school_year_to)
                     ->sortable(),
+
                 Tables\Columns\TextColumn::make('status')
                     ->searchable(),
+
+
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()

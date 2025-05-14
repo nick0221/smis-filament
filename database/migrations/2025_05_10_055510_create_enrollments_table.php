@@ -1,8 +1,10 @@
 <?php
 
+use App\Models\ClassRoom;
 use App\Models\Section;
 use App\Models\Student;
 use App\Models\GradeLevel;
+use App\Models\User;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -16,12 +18,19 @@ return new class () extends Migration {
         Schema::create('enrollments', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Student::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(GradeLevel::class)->constrained()->cascadeOnDelete();
-            $table->foreignIdFor(Section::class)->nullable()->constrained()->nullOnDelete();
+            $table->foreignIdFor(ClassRoom::class)->constrained()->nullOnDelete()->nullOnUpdate();
+            $table->foreignIdFor(Section::class)->constrained()->nullOnDelete()->nullOnUpdate();
+            $table->foreignIdFor(GradeLevel::class)->constrained()->nullOnDelete()->nullOnUpdate();
             $table->year('school_year_from');
             $table->year('school_year_to');
             $table->enum('status', ['pending', 'enrolled', 'withdrawn', 'completed'])->default('pending');
+            $table->string('initial_average_grade')->nullable();
+            $table->foreignIdFor(User::class, 'created_by')->nullable()->constrained()->nullOnDelete()->nullOnUpdate();
             $table->timestamps();
+            $table->softDeletes();
+
+
+
         });
     }
 

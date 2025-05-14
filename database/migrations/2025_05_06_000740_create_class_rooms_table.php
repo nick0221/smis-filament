@@ -21,6 +21,8 @@ return new class () extends Migration {
             $table->string('average_grade_to')->nullable();
             $table->string('criteria_description')->nullable();
             $table->foreignIdFor(FacultyStaff::class)->constrained()->onDelete('cascade')->nullable();
+            $table->year('school_year_from');
+            $table->year('school_year_to');
             $table->timestamps();
             $table->softDeletes();
         });
