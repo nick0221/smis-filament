@@ -82,19 +82,30 @@ class EnrollmentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->queryStringIdentifier('enrollments')
+            ->defaultSort('created_at', 'desc')
             ->columns([
-                Tables\Columns\TextColumn::make('student_name')
-                    ->getStateUsing(fn ($record): string => $record->student->full_name)
+                Tables\Columns\ImageColumn::make('student.profile_photo_url')
+                    ->circular()
+                    ->alignCenter()
+                    ->label('IMG')
                     ->sortable(),
 
+                Tables\Columns\TextColumn::make('student_name')
+                    ->getStateUsing(fn ($record): string => $record->student->full_name)
+                    ->description(fn ($record): string => $record->classroom->room_name)
+                    ->sortable(),
 
-                Tables\Columns\TextColumn::make('classroom.room_name')
+                Tables\Columns\TextColumn::make('classroom.adviser.full_name')
                     ->searchable(),
-
 
                 Tables\Columns\TextColumn::make('school_year')
                     ->getStateUsing(fn ($record): string => $record->school_year_from.' - '.$record->school_year_to)
                     ->sortable(),
+
+                Tables\Columns\TextColumn::make('initial_average_grade')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
 
                 Tables\Columns\TextColumn::make('status')
                     ->searchable(),

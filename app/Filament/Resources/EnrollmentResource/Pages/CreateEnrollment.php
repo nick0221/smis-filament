@@ -14,34 +14,33 @@ class CreateEnrollment extends CreateRecord
 {
     protected static string $resource = EnrollmentResource::class;
 
-
-
-
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['created_by'] = auth()->id();
-        $initialGrade = $data['initial_average_grade'] ?? 0;
+        $initialGrade = $data['initial_average_grade'] ?? null;
 
+        // Check if already enrolled
         if ($this->studentAlreadyEnrolled($data)) {
             return $this->failWithWarning('The student is already enrolled for the selected school year and section.');
         }
 
-        // Early checks
+        // Grade level must exist
         if (!$this->gradeLevelExists($data['grade_level_id'])) {
-            return $this->failWithWarning('The chosen grade level has not been added yet');
+            return $this->failWithWarning('The chosen grade level has not been added to classroom records.');
         }
 
-        if ($this->shouldCheckSection($data) && !$this->sectionExistsForGrade($data)) {
-            return $this->failWithWarning('The chosen section for the grade level has not been added yet');
+        // If no grade, we rely on selected section – it must be valid
+        if (is_null($initialGrade) && !$this->sectionExistsForGrade($data)) {
+            return $this->failWithWarning('The chosen section for the grade level has not been added to classroom records.');
         }
 
+        // Resolve classroom
+        $classroom = $initialGrade !== null
+            ? $this->findClassroomForGrade($initialGrade, $data['grade_level_id'])
+            : $this->findClassroomBySection($data['grade_level_id'], $data['section_id']);
 
-
-        // Find classroom based on initial grade
-        $classroom = $this->findClassroomForGrade($initialGrade, $data['grade_level_id']);
-
-        if (!$classroom && $initialGrade == 0) {
-            return $this->failWithWarning('No classroom found for the initial average grade.');
+        if (!$classroom) {
+            return $this->failWithWarning('No classroom found for the provided data.');
         }
 
         $data['class_room_id'] = $classroom->id;
@@ -50,10 +49,6 @@ class CreateEnrollment extends CreateRecord
         return $data;
     }
 
-
-
-
-    // Optional helper method for sending consistent warnings
     protected function sendWarningNotification(string $message): void
     {
         Notification::make()
@@ -69,18 +64,15 @@ class CreateEnrollment extends CreateRecord
                     ->color('success')
                     ->openUrlInNewTab()
                     ->label('Add Classroom'),
-
             ])
             ->send();
     }
-
-
 
     protected function failWithWarning(string $message): array
     {
         $this->sendWarningNotification($message);
         $this->halt();
-        return []; // for type consistency
+        return [];
     }
 
     protected function gradeLevelExists(int $gradeLevelId): bool
@@ -95,18 +87,12 @@ class CreateEnrollment extends CreateRecord
             ->exists();
     }
 
-    protected function shouldCheckSection(array $data): bool
-    {
-        return ($data['initial_average_grade'] ?? 0) == 0;
-    }
-
     protected function studentAlreadyEnrolled(array $data): bool
     {
-        return Enrollment::studentExists(
-            $data['student_id'],
-            $data['school_year_from'],
-            $data['school_year_to']
-        )->exists();
+        return Enrollment::where('student_id', $data['student_id'])
+            ->where('school_year_from', $data['school_year_from'])
+            ->where('school_year_to', $data['school_year_to'])
+            ->exists();
     }
 
     protected function findClassroomForGrade(float|int $grade, int $gradeLevelId): ?ClassRoom
@@ -117,6 +103,10 @@ class CreateEnrollment extends CreateRecord
             ->first();
     }
 
-
-
+    protected function findClassroomBySection(int $gradeLevelId, int $sectionId): ?ClassRoom
+    {
+        return ClassRoom::where('grade_level_id', $gradeLevelId)
+            ->where('section_id', $sectionId)
+            ->first();
+    }
 }
