@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\EnrollmentResource\Pages;
 use App\Filament\Resources\EnrollmentResource\RelationManagers;
-use Dom\Text;
 use Filament\Forms\Get;
 
 class EnrollmentResource extends Resource
@@ -88,8 +87,7 @@ class EnrollmentResource extends Resource
                 Tables\Columns\ImageColumn::make('student.profile_photo_url')
                     ->circular()
                     ->alignCenter()
-                    ->label('IMG')
-                    ->sortable(),
+                    ->label('IMG'),
 
                 Tables\Columns\TextColumn::make('student_name')
                     ->getStateUsing(fn ($record): string => $record->student->full_name)
