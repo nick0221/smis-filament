@@ -174,6 +174,7 @@ class SchoolExpenseResource extends Resource
             'index' => Pages\ListSchoolExpenses::route('/'),
             'create' => Pages\CreateSchoolExpense::route('/create'),
             'edit' => Pages\EditSchoolExpense::route('/{record}/edit'),
+            'view' => Pages\ViewSchoolTuition::route('/{record}'),
         ];
     }
 
