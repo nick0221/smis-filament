@@ -70,6 +70,9 @@ class AppPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-            ->plugin(FilamentInactivityGuardPlugin::make());
+            ->plugins([
+                FilamentInactivityGuardPlugin::make(),
+
+            ]);
     }
 }

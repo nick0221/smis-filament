@@ -9,6 +9,7 @@
         "php": "^8.2",
         "eightcedars/filament-inactivity-guard": "^0.3.1",
         "filament/filament": "^3.3",
+        "icetalker/filament-table-repeatable-entry": "^1.1",
         "laravel/framework": "^11.31",
         "laravel/tinker": "^2.9",
         "livewire/livewire": "^3.6",

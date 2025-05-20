@@ -5,13 +5,20 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\SchoolExpenseResource\Pages;
 use App\Filament\Resources\SchoolExpenseResource\RelationManagers;
 use App\Models\SchoolExpense;
+use Dom\Text;
 use Filament\Forms;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Fieldset;
+use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Icetalker\FilamentTableRepeatableEntry\Infolists\Components\TableRepeatableEntry;
+use Illuminate\Database\Eloquent\Model;
 
 class SchoolExpenseResource extends Resource
 {
@@ -118,6 +125,10 @@ class SchoolExpenseResource extends Resource
         return $table
             ->defaultSort('created_at', 'desc')
             ->queryStringIdentifier('school_expenses')
+            ->recordUrl(fn (Model $record): string => route(
+                'filament.app.resources.school-expenses.view',
+                ['record' => $record]
+            ))
             ->columns([
                 Tables\Columns\TextColumn::make('expense_name')
                     ->label('Title')
@@ -160,6 +171,76 @@ class SchoolExpenseResource extends Resource
                 ]),
             ]);
     }
+
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Fieldset::make('School Fees')
+                    ->hiddenLabel()
+                    ->columnSpan(2)
+                    ->schema([
+                        TextEntry::make('expense_name')
+                            ->label('Title')
+                            ->columnSpanFull(),
+
+                        TextEntry::make('description')
+                            ->columnSpanFull(),
+
+                        TextEntry::make('effectivity_date')
+                            ->date()
+                            ->columnSpanFull(),
+
+                        IconEntry::make('is_active')
+                            ->boolean()
+                            ->label('Applied'),
+                    ]),
+
+                Fieldset::make('School Fees')
+                    ->hiddenLabel()
+                    ->columnSpan(5)
+                    ->schema([
+
+                        TableRepeatableEntry::make('fees')
+                            ->label('School Fees')
+                            ->columnSpan(5)
+                            ->columns(4)
+                            ->schema([
+                                TextEntry::make('fee_name')
+                                    ->formatStateUsing(fn ($record): string => ucfirst($record->fee_name))
+                                    ->label('Particulars'),
+
+                                TextEntry::make('fee_amount')
+                                    ->numeric(2)
+                                    ->label('Amount')
+
+                                    ->money('PHP'),
+
+                                TextEntry::make('fee_type')
+                                    ->formatStateUsing(fn ($record): string => ucfirst($record->fee_type))
+                                    ->label('Type'),
+
+                                TextEntry::make('feeCategory.category_name')
+                                    ->formatStateUsing(fn ($record): string => $record->feeCategory->category_name)
+                                    ->label('Category'),
+
+
+                            ]),
+
+                        TextEntry::make('sum_fees')
+                            ->columnSpanFull()
+                            ->label('Total Fees')
+                            ->money('PHP')
+                            ->inlineLabel()
+                            ->alignEnd()
+                            ->extraAttributes(fn (): array => ['class' => 'font-bold'])
+                            ->getStateUsing(fn ($record): float => $record->fees->sum('fee_amount')),
+                    ]),
+
+            ])->columns(7);
+    }
+
 
     public static function getRelations(): array
     {
