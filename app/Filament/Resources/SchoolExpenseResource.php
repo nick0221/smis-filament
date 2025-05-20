@@ -21,6 +21,8 @@ class SchoolExpenseResource extends Resource
 
     protected static ?string $navigationGroup = 'Settings';
 
+    protected static ?string $modelLabel = 'Tuition Fee';
+
 
     public static function form(Form $form): Form
     {
@@ -43,15 +45,17 @@ class SchoolExpenseResource extends Resource
                             ->required(),
 
                         Forms\Components\Toggle::make('is_active')
+                            ->label('Applied')
                             ->inline(false)
                             ->columnSpanFull()
                             ->default(true)
                             ->onIcon('heroicon-s-check')
                             ->onColor('success')
+                            ->offIcon('heroicon-s-x-mark')
                             ->required(),
                     ]),
 
-                Section::make(__('List of School Fees'))
+                Section::make(__('School Fees & Miscellaneous'))
                     ->columnSpan(5)
                     ->schema([
                         Forms\Components\Repeater::make('fees')
@@ -112,18 +116,33 @@ class SchoolExpenseResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
+            ->queryStringIdentifier('school_expenses')
             ->columns([
                 Tables\Columns\TextColumn::make('expense_name')
+                    ->label('Title')
                     ->searchable(),
+
                 Tables\Columns\TextColumn::make('effectivity_date')
                     ->date()
                     ->sortable(),
+
                 Tables\Columns\IconColumn::make('is_active')
+                    ->label('Applied')
+                    ->alignCenter()
                     ->boolean(),
+
+                Tables\Columns\TextColumn::make('sum_fees')
+                    ->label('Total fees')
+                    ->money('PHP')
+                    ->alignEnd()
+                    ->getStateUsing(fn ($record): float => $record->fees->sum('fee_amount')),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
@@ -157,4 +176,6 @@ class SchoolExpenseResource extends Resource
             'edit' => Pages\EditSchoolExpense::route('/{record}/edit'),
         ];
     }
+
+
 }
