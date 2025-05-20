@@ -21,28 +21,24 @@ class EditSchoolExpense extends EditRecord
 
     public function beforeSave(): void
     {
-
-        if ($this->data['is_active']) {
-            // Deactivate all currently active records
-            $schoolExpense = SchoolExpense::where('is_active', true);
-            if ($schoolExpense->count() > 0) {
-                $schoolExpense->update(['is_active' => false]);
-            }
-
-        } else {
-
+        if (!$this->data['is_active'] && SchoolExpense::where('is_active', true)->count() == 0) {
             Notification::make()
-               ->warning()
-               ->title('Failed to save')
-               ->body('You need to have at least one active tuition fees on the system.')
-               ->send();
+             ->warning()
+             ->title('Failed to save')
+             ->body('You need to have at least one active tuition fees on the system.')
+             ->send();
 
             $this->halt();
-
         }
+
     }
 
-
+    public function afterSave(): void
+    {
+        if ($this->data['is_active']) {
+            SchoolExpense::where('id', '!=', $this->record->id)->update(['is_active' => false]);
+        }
+    }
 
 
 
