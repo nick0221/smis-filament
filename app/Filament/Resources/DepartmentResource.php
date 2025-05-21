@@ -35,6 +35,7 @@ class DepartmentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->deferLoading()
             ->queryStringIdentifier('departments')
             ->defaultSort('name', 'asc')
             ->columns([

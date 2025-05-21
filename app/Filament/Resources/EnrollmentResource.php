@@ -81,6 +81,7 @@ class EnrollmentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->deferLoading()
             ->queryStringIdentifier('enrollments')
             ->defaultSort('created_at', 'desc')
             ->columns([

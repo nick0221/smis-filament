@@ -74,7 +74,7 @@ class SchoolExpenseResource extends Resource
                             ->minItems(1)
                             ->addActionLabel('Add Fee')
                             ->itemLabel(
-                                fn(array $state): ?string => strtoupper($state['fee_name'])
+                                fn (array $state): ?string => strtoupper($state['fee_name'])
                             )
                             ->columnSpanFull()
                             ->schema([
@@ -103,7 +103,7 @@ class SchoolExpenseResource extends Resource
                                             ->required(),
                                     ])
                                     ->createOptionAction(
-                                        fn(Action $action) => $action
+                                        fn (Action $action) => $action
                                             ->label('Create Department')
                                             ->modalSubmitActionLabel('Submit')
                                             ->modalHeading('New Category')
@@ -124,9 +124,10 @@ class SchoolExpenseResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->deferLoading()
             ->defaultSort('created_at', 'desc')
             ->queryStringIdentifier('school_expenses')
-            ->recordUrl(fn(Model $record): string => route(
+            ->recordUrl(fn (Model $record): string => route(
                 'filament.app.resources.school-expenses.view',
                 ['record' => $record]
             ))
@@ -148,7 +149,7 @@ class SchoolExpenseResource extends Resource
                     ->label('Total fees')
                     ->money('PHP')
                     ->alignEnd()
-                    ->getStateUsing(fn($record): float => $record->fees->sum('fee_amount')),
+                    ->getStateUsing(fn ($record): float => $record->fees->sum('fee_amount')),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -215,7 +216,7 @@ class SchoolExpenseResource extends Resource
                                     ->extraAttributes(['class' => 'font-bold'])
                                     ->size(TextEntry\TextEntrySize::Large)
                                     ->alignEnd()
-                                    ->getStateUsing(fn($record): float => $record->fees->sum('fee_amount')),
+                                    ->getStateUsing(fn ($record): float => $record->fees->sum('fee_amount')),
                             ]),
                         TableRepeatableEntry::make('fees')
                             ->label('Tuition and Miscellaneous Fees')
@@ -223,12 +224,12 @@ class SchoolExpenseResource extends Resource
                             ->columns(4)
                             ->schema([
                                 TextEntry::make('fee_name')
-                                    ->formatStateUsing(fn($record): string => ucfirst($record->fee_name))
+                                    ->formatStateUsing(fn ($record): string => ucfirst($record->fee_name))
                                     ->label('Particulars'),
 
 
                                 TextEntry::make('feeCategory.category_name')
-                                    ->formatStateUsing(fn($record): string => $record->feeCategory->category_name)
+                                    ->formatStateUsing(fn ($record): string => $record->feeCategory->category_name)
                                     ->label('Category'),
 
                                 TextEntry::make('fee_amount')
