@@ -18,7 +18,14 @@ class EditEnrollment extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+                ->label('Void')
+                ->modalHeading('Void this enrollment?')
+                ->icon('heroicon-o-trash')
+                ->after(function () {
+                    $this->record->status_key = 'void';
+                    $this->record->save();
+                }),
         ];
     }
 
@@ -27,7 +34,6 @@ class EditEnrollment extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         $data['last_updated_by'] = Auth::user()->id;
-
         $initialGrade = $data['initial_average_grade'] ?? null;
 
         // Check if already enrolled

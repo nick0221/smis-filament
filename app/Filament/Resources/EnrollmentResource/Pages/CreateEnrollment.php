@@ -18,11 +18,13 @@ class CreateEnrollment extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['created_by'] = Auth::user()->id;
+        $data['status_key'] = 'pending';
         $initialGrade = $data['initial_average_grade'] ?? null;
+
 
         // Check if already enrolled
         if ($this->studentAlreadyEnrolled($data)) {
-            return $this->failWithWarning('The student is already enrolled for the selected school year and section.', true);
+            return $this->failWithWarning('The student already exists for the specified school year and section.', true);
         }
 
         // Grade level must exist

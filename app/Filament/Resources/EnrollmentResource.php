@@ -106,10 +106,10 @@ class EnrollmentResource extends Resource
                 Tables\Columns\TextColumn::make('initial_average_grade')
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('status')
+                Tables\Columns\TextColumn::make('studentStatus.label')
                     ->badge()
-                    ->color(fn ($record): string => StudentStatus::tryFrom($record->status)->getColor() ?? 'secondary')
-                    ->getStateUsing(fn ($record): string => StudentStatus::tryFrom($record->status)->name ?? 'Unknown')
+                    ->default('Unknown')
+                    ->color(fn ($record): string => $record->studentStatus->color ?? 'muted')
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('created_at')

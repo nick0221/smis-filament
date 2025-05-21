@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StudentStatus extends Model
 {
+    use SoftDeletes;
+
     protected $table = 'student_statuses';
 
     protected $fillable = ['key', 'label', 'color', 'description'];
@@ -13,6 +16,11 @@ class StudentStatus extends Model
     public function enrollments()
     {
         return $this->hasMany(Enrollment::class, 'status_key', 'key');
+    }
+
+    public function trashed()
+    {
+        return $this->onlyTrashed();
     }
 
 }

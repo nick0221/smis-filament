@@ -17,6 +17,7 @@ return new class () extends Migration {
             $table->string('color')->nullable(); // e.g. 'primary', 'success'
             $table->text('description')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

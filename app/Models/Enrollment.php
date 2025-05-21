@@ -19,7 +19,7 @@ class Enrollment extends Model
         'class_room_id',
         'school_year_from',
         'school_year_to',
-        'status',
+        'status_key',
         'initial_average_grade',
         'created_by',
         'section_id',
@@ -41,7 +41,7 @@ class Enrollment extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function status(): BelongsTo
+    public function studentStatus(): BelongsTo
     {
         return $this->belongsTo(StudentStatus::class, 'status_key', 'key');
     }

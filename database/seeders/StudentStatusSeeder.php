@@ -62,6 +62,12 @@ class StudentStatusSeeder extends Seeder
                'color' => 'success',
                'description' => 'Student has completed the program/course.',
            ],
+            [
+               'key' => 'void',
+               'label' => 'Void',
+               'color' => 'red',
+               'description' => 'Cancelled or Voided Students.',
+           ],
         ]);
 
     }
