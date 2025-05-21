@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use Carbon\Carbon;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\Widgets;
@@ -11,6 +12,7 @@ use Filament\Http\Middleware\Authenticate;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Filament\Http\Middleware\AuthenticateSession;
+use Awcodes\FilamentStickyHeader\StickyHeaderPlugin;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -30,6 +32,7 @@ class AppPanelProvider extends PanelProvider
             ->favicon(asset('images/logo/smis-icon.ico'))
             ->maxContentWidth('full')
             ->sidebarCollapsibleOnDesktop()
+            ->sidebarWidth('17rem')
             ->spa()
             ->brandName('SMIS')
             ->id('app')
@@ -71,7 +74,14 @@ class AppPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->plugins([
-                FilamentInactivityGuardPlugin::make(),
+                FilamentInactivityGuardPlugin::make()
+                    ->inactiveAfter(5 * Carbon::SECONDS_PER_MINUTE)
+                    ->showNoticeFor(1 * Carbon::SECONDS_PER_MINUTE)
+                    ->keepActiveOn(['change', 'select', 'mousemove'], mergeWithDefaults: true),
+
+                // StickyHeaderPlugin::make()
+                //     ->floating(),
+
 
             ]);
     }
