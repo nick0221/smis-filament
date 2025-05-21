@@ -5,6 +5,7 @@ namespace App\Filament\Resources\EnrollmentResource\Pages;
 use Filament\Actions;
 use App\Models\ClassRoom;
 use App\Models\Enrollment;
+use Illuminate\Support\Facades\Auth;
 use Filament\Notifications\Notification;
 use Filament\Notifications\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
@@ -16,12 +17,12 @@ class CreateEnrollment extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['created_by'] = auth()->id();
+        $data['created_by'] = Auth::user()->id;
         $initialGrade = $data['initial_average_grade'] ?? null;
 
         // Check if already enrolled
         if ($this->studentAlreadyEnrolled($data)) {
-            return $this->failWithWarning('The student is already enrolled for the selected school year and section.');
+            return $this->failWithWarning('The student is already enrolled for the selected school year and section.', true);
         }
 
         // Grade level must exist

@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\StudentStatus;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Enrollment extends Model
 {
@@ -26,6 +27,24 @@ class Enrollment extends Model
 
     ];
 
+    public function casts(): array
+    {
+        return [
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+
+        ];
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function status(): BelongsTo
+    {
+        return $this->belongsTo(StudentStatus::class, 'status_key', 'key');
+    }
 
     public function classRoom(): BelongsTo
     {

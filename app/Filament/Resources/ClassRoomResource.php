@@ -2,24 +2,25 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ClassRoomResource\Pages;
-use App\Filament\Resources\ClassRoomResource\RelationManagers;
-use App\Models\ClassRoom;
-use App\Models\GradeLevel;
-use App\Models\Section;
 use Carbon\Carbon;
-use Filament\Forms\Components\Actions\Action;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
+use Filament\Tables;
+use App\Models\Section;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
-use Filament\Notifications\Notification;
-use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Forms\Form;
+use App\Models\ClassRoom;
+use App\Models\GradeLevel;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Resources\Resource;
+use Filament\Forms\Components\Select;
 use Illuminate\Validation\Rules\Unique;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Forms\Components\Actions\Action;
+use App\Filament\Resources\ClassRoomResource\Pages;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\ClassRoomResource\RelationManagers;
 
 class ClassRoomResource extends Resource
 {
@@ -291,4 +292,23 @@ class ClassRoomResource extends Resource
             'edit' => Pages\EditClassRoom::route('/{record}/edit'),
         ];
     }
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
+    }
+
+
+
+
+
 }

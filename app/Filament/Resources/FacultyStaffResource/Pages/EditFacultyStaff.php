@@ -7,6 +7,7 @@ use Illuminate\Support\HtmlString;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use App\Filament\Resources\FacultyStaffResource;
+use Illuminate\Support\Facades\Auth;
 
 class EditFacultyStaff extends EditRecord
 {
@@ -32,7 +33,7 @@ class EditFacultyStaff extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        $data['last_updated_by'] = auth()->user()->id;
+        $data['last_updated_by'] = Auth::user()->id;
         return $data;
     }
 

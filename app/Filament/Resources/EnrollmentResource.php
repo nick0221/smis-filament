@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\StudentStatus;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Tables;
@@ -105,11 +106,11 @@ class EnrollmentResource extends Resource
                 Tables\Columns\TextColumn::make('initial_average_grade')
                     ->toggleable(isToggledHiddenByDefault: true),
 
-
                 Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn ($record): string => StudentStatus::tryFrom($record->status)->getColor() ?? 'secondary')
+                    ->getStateUsing(fn ($record): string => StudentStatus::tryFrom($record->status)->name ?? 'Unknown')
                     ->searchable(),
-
-
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()

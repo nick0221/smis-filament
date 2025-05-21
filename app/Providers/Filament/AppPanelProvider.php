@@ -8,6 +8,7 @@ use Filament\Panel;
 use Filament\Widgets;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\MaxWidth;
 use Filament\Http\Middleware\Authenticate;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -77,6 +78,7 @@ class AppPanelProvider extends PanelProvider
                 FilamentInactivityGuardPlugin::make()
                     ->inactiveAfter(5 * Carbon::SECONDS_PER_MINUTE)
                     ->showNoticeFor(1 * Carbon::SECONDS_PER_MINUTE)
+                    ->enabled(!app()->isLocal())
                     ->keepActiveOn(['change', 'select', 'mousemove'], mergeWithDefaults: true),
 
                 // StickyHeaderPlugin::make()

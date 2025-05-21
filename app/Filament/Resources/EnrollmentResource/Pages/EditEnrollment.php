@@ -9,6 +9,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Notifications\Actions\Action;
 use App\Filament\Resources\EnrollmentResource;
+use Illuminate\Support\Facades\Auth;
 
 class EditEnrollment extends EditRecord
 {
@@ -25,7 +26,7 @@ class EditEnrollment extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        $data['last_updated_by'] = auth()->user()->id;
+        $data['last_updated_by'] = Auth::user()->id;
 
         $initialGrade = $data['initial_average_grade'] ?? null;
 
@@ -84,6 +85,8 @@ class EditEnrollment extends EditRecord
         $this->halt();
         return [];
     }
+
+
 
     protected function gradeLevelExists(int $gradeLevelId): bool
     {

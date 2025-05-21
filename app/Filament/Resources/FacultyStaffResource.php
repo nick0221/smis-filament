@@ -165,7 +165,7 @@ class FacultyStaffResource extends Resource
     {
         return $table
             ->deferLoading()
-            ->defaultSort('last_name', 'asc')
+            ->defaultSort('created_at', 'desc')
             ->queryStringIdentifier('faculty_staff')
             ->recordUrl(fn (Model $record): string => route('filament.app.resources.faculty-staffs.view', ['record' => $record]))
             ->columns([

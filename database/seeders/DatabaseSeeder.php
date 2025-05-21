@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             DesignationSeeder::class,
             GradeLevelSeeder::class,
+            StudentStatusSeeder::class,
         ]);
 
         // User::factory(10)->create();

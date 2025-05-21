@@ -13,6 +13,8 @@ class ClassRoom extends Model
     /** @use HasFactory<\Database\Factories\ClassRoomFactory> */
     use HasFactory;
     use SoftDeletes;
+
+
     protected $fillable = [
         'room_name',
         'room_number',
