@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             DesignationSeeder::class,
             GradeLevelSeeder::class,
             StudentStatusSeeder::class,
+            RequirementSeeder::class
         ]);
 
         // User::factory(10)->create();
