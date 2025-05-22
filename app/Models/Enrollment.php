@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\StudentStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Enrollment extends Model
@@ -65,6 +66,13 @@ class Enrollment extends Model
     {
         return $this->belongsTo(GradeLevel::class);
     }
+
+
+    public function studentDocuments(): HasMany
+    {
+        return $this->hasMany(StudentDocument::class, 'student_id', 'student_id');
+    }
+
 
     public function scopeStudentExists($query, $studentId, $schoolYearFrom, $schoolYearTo)
     {

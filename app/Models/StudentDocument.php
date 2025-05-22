@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StudentDocument extends Model
 {
-
     protected $table = 'student_documents';
 
     protected $fillable = [
@@ -21,5 +20,8 @@ class StudentDocument extends Model
     {
         return $this->belongsTo(\App\Models\Student::class);
     }
+
+
+
 
 }

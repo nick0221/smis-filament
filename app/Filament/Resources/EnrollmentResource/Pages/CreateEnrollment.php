@@ -112,4 +112,13 @@ class CreateEnrollment extends CreateRecord
             ->where('section_id', $sectionId)
             ->first();
     }
+
+
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('view-enrollment', ['record' => $this->getRecord()]);
+    }
+
+
 }

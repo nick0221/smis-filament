@@ -2,20 +2,22 @@
 
 namespace App\Filament\Resources;
 
-use App\Enums\StudentStatus;
+use App\Filament\Resources\EnrollmentResource\Pages;
+use App\Filament\Resources\EnrollmentResource\RelationManagers\StudentDocumentsRelationManager;
+use App\Models\Enrollment;
 use Carbon\Carbon;
 use Filament\Forms;
-use Filament\Tables;
-use Filament\Forms\Set;
 use Filament\Forms\Form;
-use App\Models\Enrollment;
-use Filament\Tables\Table;
-use Filament\Resources\Resource;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Resources\EnrollmentResource\Pages;
-use App\Filament\Resources\EnrollmentResource\RelationManagers;
 use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Infolists\Components\Fieldset;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class EnrollmentResource extends Resource
 {
@@ -23,17 +25,22 @@ class EnrollmentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+
     public static function form(Form $form): Form
     {
 
         $currentYear = Carbon::now()->year;
-        $yearOptions = collect(range($currentYear, $currentYear - 30))->mapWithKeys(fn ($year) => [$year => $year])->toArray();
+        $yearOptions = collect(range($currentYear, $currentYear - 30))->mapWithKeys(fn (
+            $year
+        ) => [$year => $year])->toArray();
 
 
         return $form
             ->schema([
                 Forms\Components\Select::make('student_id')
-                    ->relationship('student', 'full_name', modifyQueryUsing: fn (Builder $query) => $query->orderBy('last_name', 'asc'))
+                    ->relationship('student', 'full_name', modifyQueryUsing: fn (
+                        Builder $query
+                    ) => $query->orderBy('last_name', 'asc'))
                     ->getOptionLabelFromRecordUsing(fn ($record) => $record->full_name)
                     ->searchable(['first_name', 'middle_name', 'last_name'])
                     ->preload()
@@ -51,7 +58,10 @@ class EnrollmentResource extends Resource
                     ->required(),
 
                 Forms\Components\Select::make('section_id')
-                    ->relationship('section', 'section_name', modifyQueryUsing: fn (Builder $query, Get $get) => $query->where('grade_level_id', $get('grade_level_id'))->orderBy('section_name', 'asc'))
+                    ->relationship('section', 'section_name', modifyQueryUsing: fn (
+                        Builder $query,
+                        Get $get
+                    ) => $query->where('grade_level_id', $get('grade_level_id'))->orderBy('section_name', 'asc'))
                     ->label('Section')
                     ->disabled(fn (Get $get) => $get('initial_average_grade'))
                     ->required(fn (Get $get) => !$get('initial_average_grade')),
@@ -74,8 +84,6 @@ class EnrollmentResource extends Resource
                     ->required(),
 
 
-
-
             ]);
     }
 
@@ -85,6 +93,10 @@ class EnrollmentResource extends Resource
             ->deferLoading()
             ->queryStringIdentifier('enrollments')
             ->defaultSort('created_at', 'desc')
+            ->recordUrl(fn (Model $record): string => route(
+                'filament.app.resources.enrollments.view-enrollment',
+                ['record' => $record]
+            ))
             ->columns([
                 Tables\Columns\ImageColumn::make('student.profile_photo_url')
                     ->circular()
@@ -110,6 +122,7 @@ class EnrollmentResource extends Resource
                     ->badge()
                     ->default('Unknown')
                     ->color(fn ($record): string => $record->studentStatus->color ?? 'muted')
+                    //->tooltip(fn ($record): string => $record->studentStatus->description)
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('created_at')
@@ -135,10 +148,37 @@ class EnrollmentResource extends Resource
             ]);
     }
 
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Fieldset::make('Student')
+                    ->columns(4)
+                    ->schema([
+                        TextEntry::make('student.full_name')
+                            ->label('Name')
+                            ->formatStateUsing(fn ($record): string => $record->student->full_name),
+
+                        TextEntry::make('classroom.room_name')
+                            ->label('Room'),
+
+                        TextEntry::make('classroom.adviser.full_name')
+                            ->label('Adviser'),
+
+                        TextEntry::make('studentStatus.label')
+                            ->badge()
+                            ->default('Unknown')
+                            ->color(fn ($record): string => $record->studentStatus->color ?? 'muted')
+                            ->label('Status')
+                    ])
+            ]);
+    }
+
     public static function getRelations(): array
     {
         return [
-            //
+            StudentDocumentsRelationManager::class,
+
         ];
     }
 
@@ -148,6 +188,7 @@ class EnrollmentResource extends Resource
             'index' => Pages\ListEnrollments::route('/'),
             'create' => Pages\CreateEnrollment::route('/create'),
             'edit' => Pages\EditEnrollment::route('/{record}/edit'),
+            'view-enrollment' => Pages\ViewEnrollmentStudent::route('/{record}'),
         ];
     }
 }

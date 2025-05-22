@@ -114,6 +114,7 @@ class StudentResource extends Resource
                                         ->disk('public')
                                         ->directory('student-documents')
                                         ->required()
+                                        ->previewable()
                                         ->acceptedFileTypes(['application/pdf', 'image/*']),
                                 ])
                                 ->grid(['default' => 1, 'sm' => 3])
