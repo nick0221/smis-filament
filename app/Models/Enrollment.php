@@ -25,6 +25,9 @@ class Enrollment extends Model
         'created_by',
         'section_id',
         'grade_level_id',
+        'reference_number',
+        'last_updated_by',
+        'deleted_by',
 
     ];
 
@@ -81,6 +84,19 @@ class Enrollment extends Model
                 ['school_year_from', '=', $schoolYearFrom],
                 ['school_year_to', '=', $schoolYearTo],
             ]);
+    }
+
+
+    public static function booted()
+    {
+        static::creating(function ($enrollment) {
+            $enrollment->reference_number = self::generateReferenceNumber();
+        });
+    }
+
+    public static function generateReferenceNumber(): string
+    {
+        return 'ENR-' . date('ymd') . '-' . str_pad(self::count() + 1, 4, '0', STR_PAD_LEFT);
     }
 
 

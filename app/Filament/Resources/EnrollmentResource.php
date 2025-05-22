@@ -101,6 +101,7 @@ class EnrollmentResource extends Resource
             ->columns([
                 Tables\Columns\ImageColumn::make('student.profile_photo_url')
                     ->circular()
+
                     ->alignCenter()
                     ->label('IMG'),
 
@@ -154,23 +155,31 @@ class EnrollmentResource extends Resource
         return $infolist
             ->schema([
                 Fieldset::make('Student')
-                    ->columns(4)
+                    ->columns(3)
                     ->schema([
                         TextEntry::make('student.full_name')
                             ->label('Name')
                             ->formatStateUsing(fn ($record): string => $record->student->full_name),
 
-                        TextEntry::make('classroom.room_name')
-                            ->label('Room'),
-
-                        TextEntry::make('classroom.adviser.full_name')
-                            ->label('Adviser'),
+                        TextEntry::make('student.student_id_number')
+                            ->label('Student ID'),
 
                         TextEntry::make('studentStatus.label')
                             ->badge()
                             ->default('Unknown')
                             ->color(fn ($record): string => $record->studentStatus->color ?? 'muted')
-                            ->label('Status')
+                            ->label('Status'),
+
+                        TextEntry::make('classroom.room_name')
+                            ->label('Room'),
+
+                        TextEntry::make('classroom.room_number')
+                            ->label('Room No.'),
+
+                        TextEntry::make('classroom.adviser.full_name')
+                            ->label('Room Adviser'),
+
+
                     ])
             ]);
     }
