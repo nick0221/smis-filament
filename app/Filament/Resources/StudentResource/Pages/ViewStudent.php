@@ -11,6 +11,21 @@ class ViewStudent extends ViewRecord
 {
     protected static string $resource = StudentResource::class;
 
+    public function getHeading(): string|Htmlable
+    {
+        return __($this->record->full_name);
+    }
+
+    public function getSubheading(): string|Htmlable|null
+    {
+        return $this->record->student_id_number;
+    }
+
+    public function getTitle(): string
+    {
+        return __('SMIS - Student '.$this->record->full_name);
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -18,20 +33,6 @@ class ViewStudent extends ViewRecord
                 ->icon('heroicon-o-pencil'),
         ];
     }
-
-
-    public function getHeading(): string|Htmlable
-    {
-        return __($this->record->full_name);
-    }
-
-    public function getTitle(): string
-    {
-        return __('SMIS - Student '. $this->record->full_name);
-    }
-
-
-
 
 
 }

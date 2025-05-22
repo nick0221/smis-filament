@@ -46,7 +46,7 @@ class StudentResource extends Resource
                                     TextInput::make('middle_name')->label('Middle Name'),
                                     TextInput::make('last_name')->label('Last Name')->required(),
                                     TextInput::make('extension_name')->label('Extension Name')->hint('Optional')->hintColor('muted'),
-                                    DatePicker::make('dob')->label('Date of Birth')->required()->maxDate(now())->native(false),
+                                    DatePicker::make('dob')->label('Date of Birth')->required()->maxDate(now())->native(false)->closeOnDateSelection(),
                                     Select::make('gender')->options(['male' => 'Male', 'female' => 'Female'])->required(),
                                     FileUpload::make('image')->label('Student Image')->image()->directory('students')
                                         ->imageCropAspectRatio('1:1')->imageResizeTargetWidth(300)->imageResizeTargetHeight(300),
@@ -130,7 +130,8 @@ class StudentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->defaultSort('last_name', 'asc')
+            ->deferLoading()
+            ->defaultSort('created_at', 'desc')
             ->queryStringIdentifier('students')
             ->recordUrl(fn (Model $record): string => route('filament.app.resources.students.view', ['record' => $record]))
             ->columns([
@@ -145,12 +146,14 @@ class StudentResource extends Resource
                     ->label('Name')
                     ->getStateUsing(fn ($record) => $record->full_name)
                     ->searchable(['first_name', 'middle_name', 'last_name'])
+                    ->description(fn ($record) => $record->student_id_number)
                     ->sortable(['last_name']),
 
                 Tables\Columns\TextColumn::make('dob')
                     ->label('Date of Birth')
                     ->date('M d, Y')
                     ->sortable(),
+
                 Tables\Columns\TextColumn::make('gender')
                     ->formatStateUsing(function ($record) {
                         return match ($record->gender) {
@@ -160,15 +163,18 @@ class StudentResource extends Resource
                         };
                     })
                     ->searchable(),
+
                 Tables\Columns\TextColumn::make('email')
-                    ->searchable(),
+                    ->default('-'),
+
                 Tables\Columns\TextColumn::make('phone')
-                    ->searchable(),
+                    ->default('-'),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
@@ -191,8 +197,7 @@ class StudentResource extends Resource
 
             ->emptyStateActions([
                 Tables\Actions\CreateAction::make(),
-            ])
-            ->deferLoading();
+            ]);
     }
 
 
@@ -228,6 +233,7 @@ class StudentResource extends Resource
                                 ->date(),
 
                             TextEntry::make('email')
+                                ->default('-')
                                 ->label('Email'),
 
                             TextEntry::make('age')
@@ -235,9 +241,11 @@ class StudentResource extends Resource
                                 ->formatStateUsing(fn ($record) => $record->age ? $record->age . ' years old' : 'N/A'),
 
                             TextEntry::make('phone')
+                                ->default('-')
                                 ->label('Phone'),
 
                             TextEntry::make('address')
+                                ->default('-')
                                 ->label('Address'),
                         ]),
 
@@ -351,6 +359,7 @@ class StudentResource extends Resource
         return [
             'first_name',
             'last_name',
+            'student_id_number'
         ];
     }
 
@@ -362,6 +371,7 @@ class StudentResource extends Resource
     public static function getGlobalSearchResultDetails($record): array
     {
         return [
+            'ID' => $record->student_id_number,
             'Email' => $record->email,
             'Phone' => $record->phone,
 
