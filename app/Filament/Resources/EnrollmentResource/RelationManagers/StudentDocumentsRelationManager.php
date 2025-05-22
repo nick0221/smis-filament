@@ -118,7 +118,10 @@ class StudentDocumentsRelationManager extends RelationManager
                 // Tables\Actions\BulkActionGroup::make([
                 //     Tables\Actions\DeleteBulkAction::make(),
                 // ]),
-            ]);
+            ])
+            ->emptyStateIcon('heroicon-o-document')
+            ->emptyStateHeading('No documents found.')
+            ->emptyStateDescription(null);
     }
 
     public function form(Form $form): Form

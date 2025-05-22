@@ -48,6 +48,7 @@ class EnrollmentResource extends Resource
 
                 Forms\Components\TextInput::make('initial_average_grade')
                     ->label('Average Grade')
+                    ->numeric()
                     ->live()
                     ->afterStateUpdated(fn (Set $set, ?string $state) => $state ? $set('section_id', null) : null),
 

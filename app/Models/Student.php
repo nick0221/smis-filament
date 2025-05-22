@@ -30,6 +30,7 @@ class Student extends Model
         'extension_name',
         'user_id',
         'last_updated_by',
+        'student_id_number',
 
     ];
 
@@ -72,7 +73,6 @@ class Student extends Model
     }
 
 
-
     public function getProfilePhotoUrlAttribute(): string
     {
         if ($this->image) {
@@ -80,5 +80,36 @@ class Student extends Model
         }
         return asset('images/placeholders/' . ($this->gender === 'female' ? 'placeholder-female.jpg' : 'placeholder-male.jpg'));
     }
+
+
+
+
+    public static function booted()
+    {
+        static::creating(function ($student) {
+            $student->student_id_number = self::generateStudentId();
+        });
+    }
+
+    public static function generateStudentId(): string
+    {
+        $date = now()->format('mdy'); // e.g., 052324
+        $prefix = 'SGID-' . $date . '-';
+
+        // Get the last student's ID (regardless of date)
+        $lastStudent = self::orderBy('id', 'desc')->first();
+
+        // Extract the last sequence number if available
+        if ($lastStudent && preg_match('/\d{4}$/', $lastStudent->student_id_number, $matches)) {
+            $lastSequence = (int) $matches[0];
+        } else {
+            $lastSequence = 999; // start at 1000
+        }
+
+        $nextSequence = str_pad($lastSequence + 1, 4, '0', STR_PAD_LEFT);
+
+        return $prefix . $nextSequence;
+    }
+
 
 }
