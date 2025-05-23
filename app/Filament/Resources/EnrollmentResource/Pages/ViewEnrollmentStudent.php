@@ -51,18 +51,15 @@ class ViewEnrollmentStudent extends ViewRecord
     {
         return [
             Action::make('confirm_verification')
+                ->hidden(fn (Enrollment $record): bool => $record->status_key === 'enrolled')
                 ->label('Confirm Documents')
                 ->icon('heroicon-o-check-badge')
-                ->color('success')
+                ->color('primary')
                 ->modalWidth('5xl')
                 ->slideOver()
                 ->modalAlignment('center')
                 ->closeModalByClickingAway(false)
                 ->modalFooterActionsAlignment('end')
-                ->after(function () {
-                    $this->record->status_key = 'enrolled';
-                    $this->record->save();
-                })
                 ->form([
                     CheckboxList::make('requirements_presented')
                         ->gridDirection('row')
@@ -74,7 +71,7 @@ class ViewEnrollmentStudent extends ViewRecord
                         ->descriptions(
                             Requirement::all()
                                 ->pluck('document_description', 'id')
-                                ->map(fn($desc) => Str::limit($desc, 30))
+                                ->map(fn ($desc) => Str::limit($desc, 30))
                                 ->toArray()
                         ),
 
@@ -114,18 +111,26 @@ class ViewEnrollmentStudent extends ViewRecord
                     }
 
                     // 2. Save any extra manually added documents
-                    foreach ($data['student_documents_extra'] ?? [] as $doc) {
+                    foreach ($data['studentDocuments'] ?? [] as $doc) {
                         $record->documents()->create([
                             'title' => $doc['title'],
                             'description' => $doc['description'] ?? null,
                         ]);
                     }
-                })
-                ->successNotification(
+
+                    $record->status_key = 'enrolled';
+                    $record->save();
+
+                    // Show success notification
                     Notification::make()
                         ->success()
                         ->title('Verification confirmed!')
-                ),
+                        ->send();
+
+                    // Manually redirect (if on custom page)
+                    return redirect()->route('filament.app.resources.enrollments.index');
+
+                }),
 
             DeleteAction::make('delete')
                 ->modalIcon('heroicon-o-archive-box-x-mark')

@@ -7,6 +7,7 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\Widgets;
 use Filament\PanelProvider;
+use Filament\Enums\ThemeMode;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\MaxWidth;
 use Filament\Http\Middleware\Authenticate;
@@ -28,6 +29,7 @@ class AppPanelProvider extends PanelProvider
     {
         return $panel
             ->default()
+            ->defaultThemeMode(ThemeMode::Light)
             ->brandLogoHeight('65px')
             ->brandLogo(asset('images/logo/smis-logo.png'))
             ->favicon(asset('images/logo/smis-icon.ico'))
