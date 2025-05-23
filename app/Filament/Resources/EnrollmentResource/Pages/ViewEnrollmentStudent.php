@@ -2,29 +2,36 @@
 
 namespace App\Filament\Resources\EnrollmentResource\Pages;
 
+use App\Filament\Resources\EnrollmentResource;
 use App\Models\Enrollment;
 use App\Models\Requirement;
-use Illuminate\Support\Str;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
-use Illuminate\Support\HtmlString;
-use Illuminate\Support\Facades\Auth;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
-use Filament\Forms\Components\Placeholder;
 use Illuminate\Contracts\Support\Htmlable;
-use Filament\Forms\Components\CheckboxList;
-use App\Filament\Resources\EnrollmentResource;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 
 class ViewEnrollmentStudent extends ViewRecord
 {
     protected static string $resource = EnrollmentResource::class;
 
+    //protected static ?string $title = 'Verify document';
+
     public function getSubheading(): Htmlable|string|null
     {
         return new HtmlString('<span class="font-semibold text-primary">'.$this->getRecord()->reference_number.'</span>');
+    }
+
+    public function getBreadcrumb(): string
+    {
+        return 'Verify document';
     }
 
     /**s
@@ -52,6 +59,10 @@ class ViewEnrollmentStudent extends ViewRecord
                 ->modalAlignment('center')
                 ->closeModalByClickingAway(false)
                 ->modalFooterActionsAlignment('end')
+                ->after(function () {
+                    $this->record->status_key = 'enrolled';
+                    $this->record->save();
+                })
                 ->form([
                     CheckboxList::make('requirements_presented')
                         ->gridDirection('row')
@@ -63,7 +74,7 @@ class ViewEnrollmentStudent extends ViewRecord
                         ->descriptions(
                             Requirement::all()
                                 ->pluck('document_description', 'id')
-                                ->map(fn ($desc) => Str::limit($desc, 30))
+                                ->map(fn($desc) => Str::limit($desc, 30))
                                 ->toArray()
                         ),
 
