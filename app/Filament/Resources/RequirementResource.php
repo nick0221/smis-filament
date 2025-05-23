@@ -19,24 +19,25 @@ class RequirementResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationGroup = 'Settings';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('document_name')
-                    ->required(),
-                Forms\Components\Textarea::make('document_description')
-                    ->required()
-                    ->columnSpanFull(),
+                Forms\Components\TextInput::make('document_name')->required()->maxLength(255),
+                Forms\Components\Textarea::make('document_description')->rows(3)->columnSpanFull(),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('id', 'desc')
             ->columns([
-                Tables\Columns\TextColumn::make('document_name')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('document_name')->searchable(),
+                Tables\Columns\TextColumn::make('document_description')->limit(50),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

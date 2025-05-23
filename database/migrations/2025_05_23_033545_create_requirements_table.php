@@ -14,6 +14,7 @@ return new class () extends Migration {
             $table->id();
             $table->string('document_name');
             $table->text('document_description');
+            $table->string('document_category');
             $table->timestamps();
         });
     }

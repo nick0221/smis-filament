@@ -2,16 +2,21 @@
 
 namespace App\Filament\Resources\EnrollmentResource\Pages;
 
+use App\Models\Enrollment;
+use App\Models\Requirement;
+use Illuminate\Support\Str;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Facades\Auth;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Forms\Components\Placeholder;
 use Illuminate\Contracts\Support\Htmlable;
+use Filament\Forms\Components\CheckboxList;
 use App\Filament\Resources\EnrollmentResource;
-use Filament\Forms\Components\Repeater;
 
 class ViewEnrollmentStudent extends ViewRecord
 {
@@ -39,23 +44,72 @@ class ViewEnrollmentStudent extends ViewRecord
     {
         return [
             Action::make('confirm_verification')
-                ->label('Confirm Verification')
+                ->label('Confirm Documents')
                 ->icon('heroicon-o-check-badge')
                 ->color('success')
-                ->modalWidth('sm')
-                ->closeModalByClickingAway(false)
+                ->modalWidth('5xl')
                 ->slideOver()
-                ->modalFooterActionsAlignment('center')
+                ->modalAlignment('center')
+                ->closeModalByClickingAway(false)
+                ->modalFooterActionsAlignment('end')
                 ->form([
+                    CheckboxList::make('requirements_presented')
+                        ->gridDirection('row')
+                        ->searchable()
+                        ->columns(4)
+                        ->extraInputAttributes(['class' => 'text-sm'])
+                        ->label('Requirements presented')
+                        ->options(Requirement::all()->pluck('document_name', 'id')->toArray())
+                        ->descriptions(
+                            Requirement::all()
+                                ->pluck('document_description', 'id')
+                                ->map(fn ($desc) => Str::limit($desc, 30))
+                                ->toArray()
+                        ),
+
+                    Placeholder::make('separator')
+                        ->hiddenLabel()
+                        ->content(new HtmlString('
+                            <div class="flex items-center max-w-xs mx-auto my-4 text-uppercase">
+                                <hr class="flex-grow border-t-2 border-gray-700 rounded" style="height: 3px;" />
+                                    <span class="mx-2 font-semibold text-gray-500">&nbsp; OR  &nbsp;</span>
+                                <hr class="flex-grow border-t-2 border-gray-700 rounded" style="height: 3px;" />
+                            </div>
+                        '))
+                        ->columnSpan('full'),
+
                     Repeater::make('studentDocuments')
-                        ->addActionLabel('Add more')
+                        ->hiddenLabel()
+                        ->label('Other Documents presented')
+                        ->addActionLabel('Add other document')
+                        ->defaultItems(0)
                         ->columnSpanFull()
+                        ->reorderableWithDragAndDrop(false)
                         ->simple(
                             TextInput::make('title')
-
+                                ->placeholder('Enter document title')
                                 ->required(),
                         ),
                 ])
+                ->action(function (array $data, Enrollment $record) {
+                    // 1. Save checked requirements as student documents
+                    foreach ($data['requirements_presented'] as $requirementId) {
+                        $requirement = Requirement::find($requirementId);
+                        $record->documents()->firstOrCreate([
+                            'title' => $requirement->document_name,
+                        ], [
+                            'description' => $requirement->document_description,
+                        ]);
+                    }
+
+                    // 2. Save any extra manually added documents
+                    foreach ($data['student_documents_extra'] ?? [] as $doc) {
+                        $record->documents()->create([
+                            'title' => $doc['title'],
+                            'description' => $doc['description'] ?? null,
+                        ]);
+                    }
+                })
                 ->successNotification(
                     Notification::make()
                         ->success()

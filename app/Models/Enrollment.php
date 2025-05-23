@@ -77,6 +77,17 @@ class Enrollment extends Model
     }
 
 
+    public function documents(): HasMany
+    {
+        return $this->hasMany(StudentDocument::class, 'student_id', 'student_id');
+    }
+
+    public function requirements(): HasMany
+    {
+        return $this->hasMany(Requirement::class);
+    }
+
+
     public function scopeStudentExists($query, $studentId, $schoolYearFrom, $schoolYearTo)
     {
         return $query->where([

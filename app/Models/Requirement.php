@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Requirement extends Model
 {
@@ -19,9 +19,9 @@ class Requirement extends Model
 
 
 
-    public function enrollments(): BelongsToMany
+    public function enrollments(): BelongsTo
     {
-        return $this->belongsToMany(Enrollment::class);
+        return $this->belongsTo(Enrollment::class);
     }
 
 
