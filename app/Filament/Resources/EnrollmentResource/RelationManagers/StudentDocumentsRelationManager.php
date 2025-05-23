@@ -48,7 +48,8 @@ class StudentDocumentsRelationManager extends RelationManager
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Date uploaded')
-                    ->dateTime('M d, Y - h:i A'),
+                    ->since()
+                    //->dateTime('M d, Y - h:i A'),
 
 
             ])
@@ -110,13 +111,26 @@ class StudentDocumentsRelationManager extends RelationManager
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
-                    ->tooltip(fn ($record) => 'Upload Document for'. Str::limit($record->title, 20, '...'))
+                    ->tooltip(fn ($record) => 'Upload Document for '. Str::limit($record->title, 20, '...'))
                     ->hiddenLabel()
-                    ->color('warning')
+                    ->color('primary')
                     ->size('lg')
                     ->closeModalByClickingAway(false)
-                    ->icon('heroicon-o-pencil-square')
-                    ->modalHeading('Edit Document'),
+                    ->icon('heroicon-o-arrow-up-tray')
+                    ->modalHeading('Edit Document')
+                    ->modalWidth('sm')
+                    ->modalAlignment('center')
+                    ->modalFooterActionsAlignment('center')
+                    ->form([
+                        Forms\Components\FileUpload::make('file_path')
+                            ->disk('public')
+                            ->directory('student-documents')
+                            ->label('File')
+                            ->required()
+                            ->previewable()
+                            ->acceptedFileTypes(['application/pdf', 'image/*'])
+                    ])
+                    ->successNotificationTitle(fn ($record) => $record->title.' document has been updated.'),
 
 
                 Tables\Actions\DeleteAction::make()

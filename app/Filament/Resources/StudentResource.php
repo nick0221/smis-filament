@@ -290,6 +290,8 @@ class StudentResource extends Resource
                         ]),
 
                     \Filament\Infolists\Components\Tabs\Tab::make('Documents')
+                        ->badge(fn ($record) => ($record->documents->count() > 0 ? $record->documents->count() : null))
+                        ->badgeColor('primary')
                         ->schema([
                             Group::make()
                                 ->schema([
