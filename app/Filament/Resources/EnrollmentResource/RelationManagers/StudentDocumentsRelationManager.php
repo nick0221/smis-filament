@@ -120,7 +120,7 @@ class StudentDocumentsRelationManager extends RelationManager
                     ->size('lg')
                     ->closeModalByClickingAway(false)
                     ->icon('heroicon-o-arrow-up-tray')
-                    ->modalHeading('Edit Document')
+                    ->modalHeading('Upload Document')
                     ->modalWidth('sm')
                     ->modalAlignment('center')
                     ->modalFooterActionsAlignment('center')

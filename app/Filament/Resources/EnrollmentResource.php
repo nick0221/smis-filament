@@ -144,7 +144,13 @@ class EnrollmentResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('studentStatus')
+                    ->relationship('studentStatus', 'label'),
+
+                Tables\Filters\SelectFilter::make('paymentStatus')
+                    ->relationship('paymentStatus', 'label'),
+
+
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
