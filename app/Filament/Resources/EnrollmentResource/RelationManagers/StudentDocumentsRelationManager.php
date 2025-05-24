@@ -2,22 +2,22 @@
 
 namespace App\Filament\Resources\EnrollmentResource\RelationManagers;
 
-use Filament\Forms;
-use Filament\Tables;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
-use Illuminate\Support\Str;
 use App\Models\StudentDocument;
-use Filament\Tables\Actions\BulkAction;
+use Filament\Forms;
+use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Tables;
+use Filament\Tables\Actions\BulkAction;
+use Filament\Tables\Table;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 
 class StudentDocumentsRelationManager extends RelationManager
 {
     protected static string $relationship = 'studentDocuments';
 
     protected static ?string $title = 'Student Documents';
-
 
     public function isReadOnly(): bool
     {
@@ -26,9 +26,13 @@ class StudentDocumentsRelationManager extends RelationManager
 
     public function table(Table $table): Table
     {
+        $countDocuments = (int) $this->ownerRecord->studentDocuments()->count();
+
+
         return $table
+            ->heading('Student Documents  '. ($countDocuments > 0 ? "({$countDocuments})" : ''))
             ->deferLoading()
-            ->defaultPaginationPageOption(5)
+            ->defaultPaginationPageOption(10)
             ->defaultSort('created_at', 'desc')
             ->recordAction(false)
             ->columns([
@@ -39,7 +43,11 @@ class StudentDocumentsRelationManager extends RelationManager
                     ->url(fn ($record) => $record->file_path ? asset("storage/{$record->file_path}") : null)
                     ->openUrlInNewTab()
                     ->size('sm')
-                    ->tooltip(fn ($record) => $record->file_path ? 'View/Download '. Str::limit($record->title, 20, '...') : null)
+                    ->tooltip(fn ($record) => $record->file_path ? 'View/Download '.Str::limit(
+                        $record->title,
+                        20,
+                        '...'
+                    ) : null)
                     ->alignCenter(),
 
                 Tables\Columns\TextColumn::make('title')
@@ -49,7 +57,7 @@ class StudentDocumentsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Date uploaded')
                     ->since()
-                    //->dateTime('M d, Y - h:i A'),
+                //->dateTime('M d, Y - h:i A'),
 
 
             ])
@@ -97,13 +105,8 @@ class StudentDocumentsRelationManager extends RelationManager
                             ->addActionLabel('Add more document'),
                     ])
                     ->action(function (array $data, RelationManager $livewire) {
-                        foreach ($data['documents'] as $doc) {
-                            $livewire->getRelationship()->create([
-                                'title' => $doc['title'],
-                                'description' => $doc['description'] ?? null,
-                                'file_path' => $doc['file_path'],
-                            ]);
-                        }
+                        // Delegate to model method for clean code
+                        $livewire->getRelationship()->getParent()->uploadDocuments($data['documents']);
                     })
                     ->createAnother(false)
                     ->successNotification(Notification::make()->success()->title('Documents uploaded successfully.'))
@@ -111,7 +114,7 @@ class StudentDocumentsRelationManager extends RelationManager
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
-                    ->tooltip(fn ($record) => 'Upload Document for '. Str::limit($record->title, 20, '...'))
+                    ->tooltip(fn ($record) => 'Upload Document for '.Str::limit($record->title, 20, '...'))
                     ->hiddenLabel()
                     ->color('primary')
                     ->size('lg')
@@ -143,7 +146,7 @@ class StudentDocumentsRelationManager extends RelationManager
                     ->modalHeading('Delete Document?'),
 
 
-            ])
+            ], '')
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
@@ -263,11 +266,11 @@ class StudentDocumentsRelationManager extends RelationManager
                             foreach ($data['documents'] as $doc) {
                                 $filePath = $doc['file_path'] ?? null;
 
-                                if ($filePath instanceof \Illuminate\Http\UploadedFile) {
+                                if ($filePath instanceof UploadedFile) {
                                     $filePath = $filePath->store('student-documents', 'public');
                                 }
 
-                                \App\Models\StudentDocument::where('id', $doc['id'])->update([
+                                StudentDocument::where('id', $doc['id'])->update([
                                     'title' => $doc['title'],
                                     'description' => $doc['description'],
                                     'file_path' => $filePath,
@@ -316,4 +319,6 @@ class StudentDocumentsRelationManager extends RelationManager
 
             ]);
     }
+
+
 }

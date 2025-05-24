@@ -49,6 +49,7 @@ class ViewEnrollmentStudent extends ViewRecord
 
     protected function getHeaderActions(): array
     {
+
         return [
             Action::make('confirm_verification')
                 ->hidden(fn (Enrollment $record): bool => $record->status_key === 'enrolled')
@@ -67,13 +68,8 @@ class ViewEnrollmentStudent extends ViewRecord
                         ->columns(4)
                         ->extraInputAttributes(['class' => 'text-sm'])
                         ->label('Requirements presented')
-                        ->options(Requirement::all()->pluck('document_name', 'id')->toArray())
-                        ->descriptions(
-                            Requirement::all()
-                                ->pluck('document_description', 'id')
-                                ->map(fn ($desc) => Str::limit($desc, 30))
-                                ->toArray()
-                        ),
+                        ->options(fn () => $this->getRequirementOptions())
+                        ->descriptions(fn () => $this->getRequirementDescriptions()),
 
                     Placeholder::make('separator')
                         ->hiddenLabel()
@@ -100,34 +96,14 @@ class ViewEnrollmentStudent extends ViewRecord
                         ),
                 ])
                 ->action(function (array $data, Enrollment $record) {
-                    // 1. Save checked requirements as student documents
-                    foreach ($data['requirements_presented'] as $requirementId) {
-                        $requirement = Requirement::find($requirementId);
-                        $record->documents()->firstOrCreate([
-                            'title' => $requirement->document_name,
-                        ], [
-                            'description' => $requirement->document_description,
-                        ]);
-                    }
+                    $record->verifyAndSaveDocuments($data);
 
-                    // 2. Save any extra manually added documents
-                    foreach ($data['studentDocuments'] ?? [] as $doc) {
-                        $record->documents()->create([
-                            'title' => $doc['title'],
-                            'description' => $doc['description'] ?? null,
-                        ]);
-                    }
-
-                    $record->status_key = 'enrolled';
-                    $record->save();
-
-                    // Show success notification
                     Notification::make()
                         ->success()
-                        ->title('Verification confirmed!')
+                        ->title('Confirmation')
+                        ->body('Enrollment (<b>'.strtoupper($record->reference_number).'</b>) was successfully verified.')
                         ->send();
 
-                    // Manually redirect (if on custom page)
                     return redirect()->route('filament.app.resources.enrollments.index');
 
                 }),
@@ -149,5 +125,40 @@ class ViewEnrollmentStudent extends ViewRecord
                 })
         ];
     }
+
+
+
+    protected function getRequirementOptions(): array
+    {
+        $record = $this->getRecord();
+
+        if (! $record || ! $record->student) {
+            return [];
+        }
+        $presented = $this->getRecord()->studentDocuments->pluck('title');
+
+        return \App\Models\Requirement::whereNotIn('document_name', $presented)
+            ->pluck('document_name', 'id')
+            ->toArray();
+
+
+    }
+
+    protected function getRequirementDescriptions(): array
+    {
+        $record = $this->getRecord();
+
+        if (! $record || ! $record->student) {
+            return [];
+        }
+
+        $presented = $this->getRecord()->studentDocuments->pluck('title')->toArray();
+
+        return \App\Models\Requirement::whereNotIn('document_name', $presented)
+            ->pluck('document_description', 'id')
+            ->map(fn ($desc) => \Illuminate\Support\Str::limit($desc, 30))
+            ->toArray();
+    }
+
 
 }

@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Models\StudentStatus;
+use Filament\Forms\Components\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -108,6 +110,80 @@ class Enrollment extends Model
     public static function generateReferenceNumber(): string
     {
         return 'ENR-' . date('ymd') . '-' . str_pad(self::count() + 1, 4, '0', STR_PAD_LEFT);
+    }
+
+    public function verifyAndSaveDocuments(array $data): void
+    {
+
+        try {
+
+            // Save checked requirements as student documents
+            $requirements = Requirement::whereIn('id', $data['requirements_presented'])->get();
+
+            foreach ($requirements as $requirement) {
+                $this->documents()->firstOrCreate(
+                    ['title' => $requirement->document_name],
+                    ['description' => $requirement->document_description]
+                );
+            }
+
+            // Save extra manually added documents
+            collect($data['studentDocuments'] ?? [])->each(
+                fn ($doc) =>
+                $this->documents()->create([
+                    'title' => $doc['title'],
+                    'description' => $doc['description'] ?? null,
+                ])
+            );
+
+            // Update enrollment status
+            $this->update(['status_key' => 'enrolled']);
+
+        } catch (\Exception $e) {
+            Notification::make()
+                ->error()
+                ->title('Error')
+                ->body($e->getMessage())
+                ->send();
+
+            return;
+        }
+
+
+    }
+
+
+
+    public function uploadDocuments(array $documents): void
+    {
+
+        try {
+
+            foreach ($documents as $doc) {
+                $this->documents()->create([
+                    'title' => $doc['title'],
+                    'description' => $doc['description'] ?? null,
+                    'file_path' => $doc['file_path'],
+                ]);
+            }
+
+            Notification::make()
+                ->success()
+                ->title('Confirmation')
+                ->body('Documents has been successfully uploaded.')
+                ->send();
+
+        } catch (\Exception $e) {
+
+            Notification::make()
+                ->error()
+                ->title('Error')
+                ->body($e->getMessage())
+                ->send();
+            return;
+        }
+
+
     }
 
 

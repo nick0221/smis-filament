@@ -16,6 +16,7 @@ return new class () extends Migration {
             $table->string('title'); // e.g., Birth Certificate, Report Card
             $table->text('description')->nullable();
             $table->string('file_path')->nullable(); // Stored file path
+
             $table->timestamps();
         });
     }
