@@ -2,21 +2,24 @@
 
 namespace App\Filament\Resources\EnrollmentResource\Pages;
 
-use App\Filament\Resources\EnrollmentResource;
 use App\Models\Enrollment;
 use App\Models\Requirement;
+use Illuminate\Support\Str;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
-use Filament\Forms\Components\CheckboxList;
-use Filament\Forms\Components\Placeholder;
+use Illuminate\Support\HtmlString;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Forms\Components\Placeholder;
 use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\HtmlString;
-use Illuminate\Support\Str;
+use Filament\Forms\Components\CheckboxList;
+use App\Filament\Resources\EnrollmentResource;
+
+use function Illuminate\Log\log;
 
 class ViewEnrollmentStudent extends ViewRecord
 {
@@ -52,7 +55,7 @@ class ViewEnrollmentStudent extends ViewRecord
 
         return [
             Action::make('confirm_verification')
-                //->hidden(fn (Enrollment $record): bool => $record->status_key === 'enrolled')
+                ->hidden(fn (Enrollment $record): bool => $record->status_key === 'enrolled')
                 ->label('Confirm Documents')
                 ->icon('heroicon-o-check-badge')
                 ->color('primary')

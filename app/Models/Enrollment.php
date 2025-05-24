@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Exception;
-use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Enrollment extends Model
 {
@@ -98,6 +99,21 @@ class Enrollment extends Model
     {
         return $this->hasMany(Requirement::class);
     }
+
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(StudentPayment::class);
+    }
+
+    public function latestPayment(): HasOne
+    {
+        return $this->hasOne(StudentPayment::class)->latestOfMany();
+    }
+
+
+
+
 
     public function scopeStudentExists($query, $studentId, $schoolYearFrom, $schoolYearTo)
     {

@@ -101,11 +101,15 @@ class EnrollmentResource extends Resource
             ->columns([
                 Tables\Columns\ImageColumn::make('student.profile_photo_url')
                     ->circular()
-
                     ->alignCenter()
                     ->label('IMG'),
 
+                Tables\Columns\TextColumn::make('reference_number')
+                    ->label('Ref #')
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('student_name')
+                    ->label('Name')
                     ->getStateUsing(fn ($record): string => $record->student->full_name)
                     ->description(fn ($record): string => $record->classroom->room_name)
                     ->sortable(),
@@ -127,11 +131,11 @@ class EnrollmentResource extends Resource
                     ->color(fn ($record): string => $record->studentStatus->color ?? 'muted')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('paymentStatus.label')
-                    ->badge()
-                    ->default('Unknown')
-                    ->color(fn ($record): string => $record->paymentStatus->color ?? 'muted')
-                    ->searchable(),
+                // Tables\Columns\TextColumn::make('paymentStatus.label')
+                //     ->badge()
+                //     ->default('Unknown')
+                //     ->color(fn ($record): string => $record->paymentStatus->color ?? 'muted')
+                //     ->searchable(),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
