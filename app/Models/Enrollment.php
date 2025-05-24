@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use App\Models\StudentStatus;
-use Filament\Forms\Components\Builder;
-use Illuminate\Database\Eloquent\Model;
+use Exception;
 use Filament\Notifications\Notification;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Enrollment extends Model
 {
@@ -23,6 +22,7 @@ class Enrollment extends Model
         'school_year_from',
         'school_year_to',
         'status_key',
+        'payment_status',
         'initial_average_grade',
         'created_by',
         'section_id',
@@ -32,6 +32,18 @@ class Enrollment extends Model
         'deleted_by',
 
     ];
+
+    public static function booted()
+    {
+        static::creating(function ($enrollment) {
+            $enrollment->reference_number = self::generateReferenceNumber();
+        });
+    }
+
+    public static function generateReferenceNumber(): string
+    {
+        return 'ENR-'.date('ymd').'-'.str_pad(self::count() + 1, 4, '0', STR_PAD_LEFT);
+    }
 
     public function casts(): array
     {
@@ -50,6 +62,11 @@ class Enrollment extends Model
     public function studentStatus(): BelongsTo
     {
         return $this->belongsTo(StudentStatus::class, 'status_key', 'key');
+    }
+
+    public function paymentStatus(): BelongsTo
+    {
+        return $this->belongsTo(StudentStatus::class, 'payment_status', 'key');
     }
 
     public function classRoom(): BelongsTo
@@ -72,14 +89,7 @@ class Enrollment extends Model
         return $this->belongsTo(GradeLevel::class);
     }
 
-
     public function studentDocuments(): HasMany
-    {
-        return $this->hasMany(StudentDocument::class, 'student_id', 'student_id');
-    }
-
-
-    public function documents(): HasMany
     {
         return $this->hasMany(StudentDocument::class, 'student_id', 'student_id');
     }
@@ -89,27 +99,13 @@ class Enrollment extends Model
         return $this->hasMany(Requirement::class);
     }
 
-
     public function scopeStudentExists($query, $studentId, $schoolYearFrom, $schoolYearTo)
     {
         return $query->where([
-                ['student_id', '=', $studentId],
-                ['school_year_from', '=', $schoolYearFrom],
-                ['school_year_to', '=', $schoolYearTo],
-            ]);
-    }
-
-
-    public static function booted()
-    {
-        static::creating(function ($enrollment) {
-            $enrollment->reference_number = self::generateReferenceNumber();
-        });
-    }
-
-    public static function generateReferenceNumber(): string
-    {
-        return 'ENR-' . date('ymd') . '-' . str_pad(self::count() + 1, 4, '0', STR_PAD_LEFT);
+            ['student_id', '=', $studentId],
+            ['school_year_from', '=', $schoolYearFrom],
+            ['school_year_to', '=', $schoolYearTo],
+        ]);
     }
 
     public function verifyAndSaveDocuments(array $data): void
@@ -129,17 +125,19 @@ class Enrollment extends Model
 
             // Save extra manually added documents
             collect($data['studentDocuments'] ?? [])->each(
-                fn ($doc) =>
-                $this->documents()->create([
+                fn ($doc) => $this->documents()->create([
                     'title' => $doc['title'],
                     'description' => $doc['description'] ?? null,
                 ])
             );
 
             // Update enrollment status
-            $this->update(['status_key' => 'enrolled']);
+            $this->update([
+                'status_key' => 'enrolled',
 
-        } catch (\Exception $e) {
+            ]);
+
+        } catch (Exception $e) {
             Notification::make()
                 ->error()
                 ->title('Error')
@@ -152,7 +150,10 @@ class Enrollment extends Model
 
     }
 
-
+    public function documents(): HasMany
+    {
+        return $this->hasMany(StudentDocument::class, 'student_id', 'student_id');
+    }
 
     public function uploadDocuments(array $documents): void
     {
@@ -173,7 +174,7 @@ class Enrollment extends Model
                 ->body('Documents has been successfully uploaded.')
                 ->send();
 
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
 
             Notification::make()
                 ->error()

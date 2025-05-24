@@ -15,6 +15,7 @@ class Requirement extends Model
     protected $fillable = [
         'document_name',
         'document_description',
+        'document_category'
     ];
 
 

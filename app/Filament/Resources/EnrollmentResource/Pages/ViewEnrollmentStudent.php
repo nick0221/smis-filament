@@ -52,7 +52,7 @@ class ViewEnrollmentStudent extends ViewRecord
 
         return [
             Action::make('confirm_verification')
-                ->hidden(fn (Enrollment $record): bool => $record->status_key === 'enrolled')
+                //->hidden(fn (Enrollment $record): bool => $record->status_key === 'enrolled')
                 ->label('Confirm Documents')
                 ->icon('heroicon-o-check-badge')
                 ->color('primary')

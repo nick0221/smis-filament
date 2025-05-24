@@ -48,6 +48,7 @@ class CreateEnrollment extends CreateRecord
 
         $data['class_room_id'] = $classroom->id;
         $data['section_id'] = $classroom->section_id;
+        $data['payment_status'] = 'unpaid';
 
         return $data;
     }

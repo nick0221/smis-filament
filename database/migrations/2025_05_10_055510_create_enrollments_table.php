@@ -24,6 +24,7 @@ return new class () extends Migration {
             $table->year('school_year_from');
             $table->year('school_year_to');
             $table->string('status_key')->nullable(); // FK to student_statuses.key
+            $table->string('payment_status')->nullable(); // FK to student_statuses.key
             $table->string('initial_average_grade')->nullable();
             $table->string('reference_number')->nullable();
             $table->foreignIdFor(User::class, 'created_by')->nullable()->constrained()->nullOnDelete()->nullOnUpdate();

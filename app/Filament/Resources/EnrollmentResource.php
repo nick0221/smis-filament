@@ -111,6 +111,7 @@ class EnrollmentResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('classroom.adviser.full_name')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('school_year')
@@ -124,7 +125,12 @@ class EnrollmentResource extends Resource
                     ->badge()
                     ->default('Unknown')
                     ->color(fn ($record): string => $record->studentStatus->color ?? 'muted')
-                    //->tooltip(fn ($record): string => $record->studentStatus->description)
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('paymentStatus.label')
+                    ->badge()
+                    ->default('Unknown')
+                    ->color(fn ($record): string => $record->paymentStatus->color ?? 'muted')
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('created_at')
