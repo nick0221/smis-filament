@@ -16,6 +16,11 @@ class Payment extends Model
         'notes',
         'payment_status',
         'ending_balance',
+        'created_by',
+        'deleted_by',
+        'updated_by',
+        'cash_tendered',
+        'change',
     ];
 
 
@@ -23,6 +28,11 @@ class Payment extends Model
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
+    }
+
+    public function enrollment(): BelongsTo
+    {
+        return $this->belongsTo(Enrollment::class);
     }
 
 

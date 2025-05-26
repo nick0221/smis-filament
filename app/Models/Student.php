@@ -34,6 +34,11 @@ class Student extends Model
 
     ];
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(StudentPayment::class, 'enrollment_id');
+    }
+
     public function documents(): HasMany
     {
         return $this->hasMany(StudentDocument::class);
