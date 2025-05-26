@@ -7,15 +7,23 @@ use App\Filament\Resources\PaymentResource\RelationManagers;
 use App\Models\Enrollment;
 use App\Models\SchoolExpense;
 use App\Models\StudentPayment;
-use Filament\Forms\Components\{Fieldset, Group, Hidden, Placeholder, Section, Select, TextInput};
+use Dom\Text;
+use Fauzie811\FilamentListEntry\Infolists\Components\ListEntry;
+use Filament\Facades\Filament;
+use Filament\Forms\Components\{Fieldset, Group, Hidden, Placeholder, Select, TextInput};
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Infolists\Components\Group as ComponentsGroup;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\HtmlString;
+use League\CommonMark\Extension\CommonMark\Node\Block\ListItem;
 
 class PaymentResource extends Resource
 {
@@ -176,9 +184,13 @@ class PaymentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->recordUrl(fn (Model $record): string => route(
+                'filament.app.resources.payments.view',
+                ['record' => $record]
+            ))
             ->columns([
                 Tables\Columns\TextColumn::make('reference_number')
-                    ->label('Payment Ref #') ,
+                    ->label('Payment Ref #'),
 
                 Tables\Columns\TextColumn::make('enrollment.student.full_name')
                     ->label('Student')
@@ -203,9 +215,6 @@ class PaymentResource extends Resource
                     ->searchable(),
 
 
-
-
-
             ])
             ->filters([
                 //
@@ -217,6 +226,91 @@ class PaymentResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+            ]);
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->columns(5)
+            ->schema([
+                \Filament\Infolists\Components\Group::make()
+                    ->hiddenLabel()
+                    ->columnSpan(3)
+                    ->schema([
+                         \Filament\Infolists\Components\Fieldset::make('Student Details')
+                            ->columns(3)
+                            ->schema([
+                                TextEntry::make('enrollment.reference_number')
+                                    ->label('Enrollment Ref #'),
+
+                                TextEntry::make('enrollment.student.full_name')
+                                    ->label('Name')
+                                    ->columnSpan(2)
+                                    ->formatStateUsing(fn ($record): string => $record->enrollment->student->full_name),
+
+
+                                TextEntry::make('enrollment.student.student_id_number')
+                                    ->columnSpanFull()
+                                    ->label('Student ID'),
+
+                            ]),
+
+                        \Filament\Infolists\Components\Fieldset::make('Payment Details')
+                            ->columns(3)
+                            ->schema([
+                                TextEntry::make('payment_method')
+                                    ->label('Mode of Payment')
+                                    ->formatStateUsing(fn ($record): string => ucwords($record->payment_method)),
+
+                                TextEntry::make('pay_amount')
+                                    ->label('Amount'),
+
+                                TextEntry::make('status')
+                                    ->label('Status')
+                                    ->badge()
+                                    ->formatStateUsing(fn ($record): string => ucwords($record->status))
+                                    ->color(fn ($record): string => $record->status === 'paid' ? 'success' : 'danger'),
+
+                            ]),
+
+                    ]),
+
+                \Filament\Infolists\Components\Group::make()
+                    ->columnSpan(2)
+                    ->schema([
+                        \Filament\Infolists\Components\Fieldset::make('total_fees')
+                            ->columnSpanFull()
+                            ->hiddenLabel()
+                            ->schema([
+                                TextEntry::make('schoolExpense.fees.fee_amount')
+                                    ->inlineLabel()
+                                    ->alignEnd()
+                                    ->columnSpanFull()
+                                    ->label('Total Fees')
+                                    ->formatStateUsing(fn ($record): string =>  number_format($record->schoolExpense->fees->sum('fee_amount'), 2)),
+
+
+                            ]),
+
+                        ListEntry::make('schoolExpense')
+                            ->label('Tuition and Miscellaneous Fees')
+                            ->itemIcon('heroicon-o-arrow-long-right')
+                            ->getStateUsing(
+                                fn ($record) =>
+                                        $record->schoolExpense->fees->map(fn ($fee) => [
+                                            'label' => $fee->fee_name,
+                                            'description' => $fee->fee_amount ?? '',
+                                        ])->toArray()
+                            )
+                            ->itemLabel(fn ($record) => $record['label'])
+                            ->itemDescription(fn ($record) => 'Fee: ₱ '.$record['description']),
+
+
+                    ]),
+
+
+
             ]);
     }
 
@@ -233,6 +327,7 @@ class PaymentResource extends Resource
             'index' => Pages\ListPayments::route('/'),
             'create' => Pages\CreatePayment::route('/create'),
             'edit' => Pages\EditPayment::route('/{record}/edit'),
+            'view' => Pages\ViewStudentPayment::route('/{record}'),
         ];
     }
 }
