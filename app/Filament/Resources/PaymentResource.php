@@ -10,7 +10,7 @@ use App\Models\StudentPayment;
 use Dom\Text;
 use Fauzie811\FilamentListEntry\Infolists\Components\ListEntry;
 use Filament\Facades\Filament;
-use Filament\Forms\Components\{Fieldset, Group, Hidden, Placeholder, Select, TextInput};
+use Filament\Forms\Components\{Fieldset, Group, Hidden, Placeholder, Select, Textarea, TextInput};
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
@@ -117,11 +117,14 @@ class PaymentResource extends Resource
                                         $schoolExpense = SchoolExpense::where('is_active', true)->latest()->first();
                                         return $schoolExpense?->fees->sum('fee_amount') ?? 0;
                                     })
+                                    ->live()
+                                    ->readOnly()
                                     ->label('Amount Due'),
 
                                 Select::make('payment_method')
                                     ->label('Payment Method')
                                     ->default('cash')
+                                    ->live()
                                     ->options([
                                         'cash' => 'Cash',
                                         'bank_transfer' => 'Bank Transfer',
@@ -130,7 +133,39 @@ class PaymentResource extends Resource
                                     ])
                                     ->required(),
 
+                                TextInput::make('gcash_pay_amount')
+                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'gcash')
+                                    ->default(fn (Get $get) => $get('amount'))
+                                    ->label('GCash Pay Amount'),
+
+                                TextInput::make('gcash_reference_number')
+                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'gcash')
+                                    ->label('GCash Reference Number'),
+
+                                TextInput::make('bank_transfer_reference_number')
+                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'bank_transfer')
+                                    ->label('Bank Transfer Reference Number'),
+
+                                TextInput::make('bank_name')
+                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'bank_transfer')
+                                    ->label('Bank Name'),
+
+                                TextInput::make('bank_account_number')
+                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'bank_transfer')
+                                    ->label('Bank Account Number'),
+
+                                TextInput::make('other_reference_number')
+                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'other')
+                                    ->label('Reference Number'),
+
+                                Textarea::make('other_notes')
+                                    ->columnSpanFull()
+                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'other')
+                                    ->label('Notes'),
+
+
                                 TextInput::make('cash_tendered')
+                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'cash')
                                     ->label('Cash Tendered')
                                     ->numeric()
                                     ->live(onBlur: true)
@@ -147,10 +182,12 @@ class PaymentResource extends Resource
 
                                 TextInput::make('change')
                                     ->label('Change')
+                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'cash')
                                     ->numeric()
                                     ->readOnly()
                                     ->prefix('₱')
                                     ->required(),
+
 
 
                             ]),
@@ -184,11 +221,17 @@ class PaymentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->deferLoading()
+            ->defaultSort('created_at', 'desc')
             ->recordUrl(fn (Model $record): string => route(
                 'filament.app.resources.payments.view',
                 ['record' => $record]
             ))
             ->columns([
+                Tables\Columns\TextColumn::make('payment_date')
+                    ->datetime('M d, Y h:i A')
+                    ->label('Date'),
+
                 Tables\Columns\TextColumn::make('reference_number')
                     ->label('Payment Ref #'),
 
@@ -220,7 +263,16 @@ class PaymentResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->modalHeading(fn ($record) => 'Void this payment ' . $record->reference_number . '?')
+                    ->icon('heroicon-o-trash')
+                    ->label('Void')
+                    ->successNotificationTitle(fn ($record) =>  $record->reference_number . ' has been voided.')
+                    ->after(function ($record) {
+                        $record->status = 'void';
+                        $record->save();
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -238,7 +290,7 @@ class PaymentResource extends Resource
                     ->hiddenLabel()
                     ->columnSpan(3)
                     ->schema([
-                         \Filament\Infolists\Components\Fieldset::make('Student Details')
+                         \Filament\Infolists\Components\Section::make('Student Details')
                             ->columns(3)
                             ->schema([
                                 TextEntry::make('enrollment.reference_number')
@@ -249,14 +301,13 @@ class PaymentResource extends Resource
                                     ->columnSpan(2)
                                     ->formatStateUsing(fn ($record): string => $record->enrollment->student->full_name),
 
-
                                 TextEntry::make('enrollment.student.student_id_number')
                                     ->columnSpanFull()
                                     ->label('Student ID'),
 
                             ]),
 
-                        \Filament\Infolists\Components\Fieldset::make('Payment Details')
+                        \Filament\Infolists\Components\Section::make('Payment Details')
                             ->columns(3)
                             ->schema([
                                 TextEntry::make('payment_method')
@@ -264,6 +315,8 @@ class PaymentResource extends Resource
                                     ->formatStateUsing(fn ($record): string => ucwords($record->payment_method)),
 
                                 TextEntry::make('pay_amount')
+                                    ->prefix('₱')
+                                    ->numeric(2)
                                     ->label('Amount'),
 
                                 TextEntry::make('status')
@@ -271,6 +324,10 @@ class PaymentResource extends Resource
                                     ->badge()
                                     ->formatStateUsing(fn ($record): string => ucwords($record->status))
                                     ->color(fn ($record): string => $record->status === 'paid' ? 'success' : 'danger'),
+
+                                TextEntry::make('payment_date')
+                                    ->label('Payment Date')
+                                    ->datetime('M d, Y h:i A'),
 
                             ]),
 
@@ -288,6 +345,7 @@ class PaymentResource extends Resource
                                     ->alignEnd()
                                     ->columnSpanFull()
                                     ->label('Total Fees')
+                                    ->extraAttributes(['class' => 'font-bold'])
                                     ->formatStateUsing(fn ($record): string =>  number_format($record->schoolExpense->fees->sum('fee_amount'), 2)),
 
 
@@ -296,6 +354,7 @@ class PaymentResource extends Resource
                         ListEntry::make('schoolExpense')
                             ->label('Tuition and Miscellaneous Fees')
                             ->itemIcon('heroicon-o-arrow-long-right')
+                            ->itemIconColor('primary')
                             ->getStateUsing(
                                 fn ($record) =>
                                         $record->schoolExpense->fees->map(fn ($fee) => [

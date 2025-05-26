@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StudentPayment extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $table = 'student_payments';
 
@@ -26,7 +28,16 @@ class StudentPayment extends Model
         'cash_tendered',
         'change',
         'school_expense_id',
-        'pay_amount'
+        'pay_amount',
+        'gcash_reference_number',
+        'bank_reference_number',
+        'bank_name',
+        'bank_account_number',
+        'other_reference_number',
+        'other_notes',
+        'gcash_pay_amount',
+        'bank_pay_amount',
+        'other_pay_amount',
 
 
     ];
@@ -41,8 +52,6 @@ class StudentPayment extends Model
     {
         return $this->belongsTo(SchoolExpense::class);
     }
-
-
 
 
 
