@@ -40,6 +40,10 @@ class PaymentResource extends Resource
 
     public static function form(Form $form): Form
     {
+        $hiddenUnless = fn (string $method) => fn (Get $get) => $get('payment_method') !== $method;
+        $requiredIf = fn (string $method) => fn (Get $get) => $get('payment_method') === $method;
+
+
         return $form
             ->columns(5)
             ->schema([
@@ -119,7 +123,6 @@ class PaymentResource extends Resource
                                         $schoolExpense = SchoolExpense::where('is_active', true)->latest()->first();
                                         return $schoolExpense?->fees->sum('fee_amount') ?? 0;
                                     })
-                                    ->live()
                                     ->readOnly()
                                     ->label('Amount Due'),
 
@@ -133,36 +136,66 @@ class PaymentResource extends Resource
                                         'gcash' => 'GCash',
                                         'other' => 'Other',
                                     ])
+                                    ->afterStateUpdated(function (Set $set, Get $get, ?string $state) {
+                                        $amount = $get('amount');
+                                        $payFields = [
+                                            'gcash' => 'gcash_pay_amount',
+                                            'bank_transfer' => 'bank_pay_amount',
+                                            'other' => 'other_pay_amount',
+                                            'cash' => 'pay_amount',
+                                        ];
+
+                                        foreach ($payFields as $method => $field) {
+                                            $set($field, $state === $method ? $amount : null);
+                                        }
+
+
+                                    })
                                     ->required(),
 
                                 TextInput::make('gcash_pay_amount')
-                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'gcash')
-                                    ->default(fn (Get $get) => $get('amount'))
+                                    ->hidden($hiddenUnless('gcash'))
+                                    ->required($requiredIf('gcash'))
                                     ->label('GCash Pay Amount'),
 
                                 TextInput::make('gcash_reference_number')
-                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'gcash')
+                                    ->hidden($hiddenUnless('gcash'))
+                                    ->required($requiredIf('gcash'))
                                     ->label('GCash Reference Number'),
 
+                                TextInput::make('bank_pay_amount')
+                                    ->hidden($hiddenUnless('bank_transfer'))
+                                    ->required($requiredIf('bank_transfer'))
+                                    ->label('Bank Pay Amount'),
+
                                 TextInput::make('bank_transfer_reference_number')
-                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'bank_transfer')
+                                    ->hidden($hiddenUnless('bank_transfer'))
+                                    ->required($requiredIf('bank_transfer'))
                                     ->label('Bank Transfer Reference Number'),
 
                                 TextInput::make('bank_name')
-                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'bank_transfer')
+                                    ->hidden($hiddenUnless('bank_transfer'))
+                                    ->required($requiredIf('bank_transfer'))
                                     ->label('Bank Name'),
 
                                 TextInput::make('bank_account_number')
-                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'bank_transfer')
+                                    ->hidden($hiddenUnless('bank_transfer'))
+                                    ->required($requiredIf('bank_transfer'))
                                     ->label('Bank Account Number'),
 
+                                TextInput::make('other_pay_amount')
+                                    ->hidden($hiddenUnless('other'))
+                                    ->required($requiredIf('other'))
+                                    ->label('Paid Amount'),
+
                                 TextInput::make('other_reference_number')
-                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'other')
+                                    ->hidden($hiddenUnless('other'))
+                                    ->required($requiredIf('other'))
                                     ->label('Reference Number'),
 
                                 Textarea::make('other_notes')
                                     ->columnSpanFull()
-                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'other')
+                                    ->hidden($hiddenUnless('other'))
                                     ->label('Notes'),
 
 
@@ -179,16 +212,16 @@ class PaymentResource extends Resource
                                         $change = max($cash - $amount, 0);
                                         $set('change', $change);
                                     })
-                                    ->required(),
+                                    ->required(fn (Get $get) => $get('payment_method') === 'cash'),
 
 
                                 TextInput::make('change')
                                     ->label('Change')
-                                    ->hidden(fn (Get $get) => $get('payment_method') !== 'cash')
+                                    ->hidden($hiddenUnless('cash'))
+                                    ->required($requiredIf('cash'))
                                     ->numeric()
                                     ->readOnly()
                                     ->prefix('₱')
-                                    ->required(),
 
 
 
@@ -333,11 +366,49 @@ class PaymentResource extends Resource
                                     ->formatStateUsing(fn ($record): string => ucwords($record->payment_method)),
 
                                 TextEntry::make('pay_amount')
-                                    ->prefix('₱')
                                     ->numeric(2)
-                                    ->label('Amount'),
+                                    ->visible(fn ($record): bool => $record->payment_method === 'cash')
+                                    ->label('Cash Amount'),
+
+                                TextEntry::make('bank_pay_amount')
+                                    ->numeric(2)
+                                    ->visible(fn ($record): bool => $record->payment_method === 'bank_transfer')
+                                    ->label('Paid Amount'),
+
+                                TextEntry::make('other_pay_amount')
+                                    ->numeric(2)
+                                    ->visible(fn ($record): bool => $record->payment_method === 'other')
+                                    ->label('Paid Amount'),
 
 
+                                TextEntry::make('gcash_amount')
+                                    ->numeric(2)
+                                    ->visible(fn ($record): bool => $record->payment_method === 'gcash')
+                                    ->label('Gcash Amount'),
+                                TextEntry::make('gcash_reference_number')
+                                    ->numeric(2)
+                                    ->visible(fn ($record): bool => $record->payment_method === 'gcash')
+                                    ->label('Gcash Ref #'),
+
+
+                                TextEntry::make('bank_reference_number')
+                                    ->visible(fn ($record): bool => $record->payment_method === 'bank_transfer')
+                                    ->label('Receipt/Bank Ref #'),
+                                TextEntry::make('bank_name')
+                                    ->visible(fn ($record): bool => $record->payment_method === 'bank_transfer')
+                                    ->label('Bank Name'),
+                                TextEntry::make('bank_account_number')
+                                    ->hint('Last 4 digits of account number')
+                                    ->visible(fn ($record): bool => $record->payment_method === 'bank_transfer')
+                                    ->label('Bank Account #'),
+
+                                TextEntry::make('other_reference_number')
+                                    ->visible(fn ($record): bool => $record->payment_method === 'other')
+                                    ->label('Transaction Ref #'),
+
+                                TextEntry::make('other_notes')
+                                    ->visible(fn ($record): bool => $record->payment_method === 'other')
+                                    ->label('Notes'),
 
                             ]),
 
