@@ -18,7 +18,9 @@ use Filament\Infolists\Components\Group as ComponentsGroup;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\IconPosition;
 use Filament\Tables;
+use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -223,16 +225,14 @@ class PaymentResource extends Resource
         return $table
             ->deferLoading()
             ->defaultSort('created_at', 'desc')
-            ->recordUrl(fn (Model $record): string => route(
-                'filament.app.resources.payments.view',
-                ['record' => $record]
-            ))
+            ->recordUrl(false)
             ->columns([
                 Tables\Columns\TextColumn::make('payment_date')
                     ->datetime('M d, Y h:i A')
                     ->label('Date'),
 
                 Tables\Columns\TextColumn::make('reference_number')
+                    ->searchable()
                     ->label('Payment Ref #'),
 
                 Tables\Columns\TextColumn::make('enrollment.student.full_name')
@@ -263,16 +263,29 @@ class PaymentResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()
+                    ->label('View more details')
+                    ->openUrlInNewTab()
+                    ->icon('heroicon-o-arrow-top-right-on-square')
+                    ->color('primary')
+                    ->hiddenLabel()
+                    ->link(),
+
+
                 Tables\Actions\DeleteAction::make()
                     ->requiresConfirmation()
                     ->modalHeading(fn ($record) => 'Void this payment ' . $record->reference_number . '?')
                     ->icon('heroicon-o-trash')
                     ->label('Void')
+                    ->hiddenLabel()
+                    ->link()
                     ->successNotificationTitle(fn ($record) =>  $record->reference_number . ' has been voided.')
                     ->after(function ($record) {
                         $record->status = 'void';
                         $record->save();
                     }),
+
+
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -284,7 +297,7 @@ class PaymentResource extends Resource
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist
-            ->columns(5)
+            ->columns(4)
             ->schema([
                 \Filament\Infolists\Components\Group::make()
                     ->hiddenLabel()
@@ -310,6 +323,11 @@ class PaymentResource extends Resource
                         \Filament\Infolists\Components\Section::make('Payment Details')
                             ->columns(3)
                             ->schema([
+
+                                TextEntry::make('payment_date')
+                                    ->label('Payment Date')
+                                    ->datetime('M d, Y h:i A'),
+
                                 TextEntry::make('payment_method')
                                     ->label('Mode of Payment')
                                     ->formatStateUsing(fn ($record): string => ucwords($record->payment_method)),
@@ -319,51 +337,32 @@ class PaymentResource extends Resource
                                     ->numeric(2)
                                     ->label('Amount'),
 
-                                TextEntry::make('status')
-                                    ->label('Status')
-                                    ->badge()
-                                    ->formatStateUsing(fn ($record): string => ucwords($record->status))
-                                    ->color(fn ($record): string => $record->status === 'paid' ? 'success' : 'danger'),
 
-                                TextEntry::make('payment_date')
-                                    ->label('Payment Date')
-                                    ->datetime('M d, Y h:i A'),
 
                             ]),
 
                     ]),
 
                 \Filament\Infolists\Components\Group::make()
-                    ->columnSpan(2)
                     ->schema([
                         \Filament\Infolists\Components\Fieldset::make('total_fees')
                             ->columnSpanFull()
+                            ->columns(1)
                             ->hiddenLabel()
                             ->schema([
-                                TextEntry::make('schoolExpense.fees.fee_amount')
-                                    ->inlineLabel()
-                                    ->alignEnd()
-                                    ->columnSpanFull()
-                                    ->label('Total Fees')
-                                    ->extraAttributes(['class' => 'font-bold'])
-                                    ->formatStateUsing(fn ($record): string =>  number_format($record->schoolExpense->fees->sum('fee_amount'), 2)),
 
+                                TextEntry::make('status')
+                                    ->label('Status')
+                                    ->badge()
+                                    ->formatStateUsing(fn ($record): string => ucwords($record->status))
+                                    ->color(fn ($record): string => $record->status === 'paid' ? 'success' : 'danger'),
+
+                                TextEntry::make('created_at')
+                                    ->label('Transaction Date')
+                                    ->datetime('M d, Y h:i A'),
 
                             ]),
 
-                        ListEntry::make('schoolExpense')
-                            ->label('Tuition and Miscellaneous Fees')
-                            ->itemIcon('heroicon-o-arrow-long-right')
-                            ->itemIconColor('primary')
-                            ->getStateUsing(
-                                fn ($record) =>
-                                        $record->schoolExpense->fees->map(fn ($fee) => [
-                                            'label' => $fee->fee_name,
-                                            'description' => $fee->fee_amount ?? '',
-                                        ])->toArray()
-                            )
-                            ->itemLabel(fn ($record) => $record['label'])
-                            ->itemDescription(fn ($record) => 'Fee: ₱ '.$record['description']),
 
 
                     ]),
