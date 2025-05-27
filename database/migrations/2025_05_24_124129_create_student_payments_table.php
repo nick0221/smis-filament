@@ -22,19 +22,19 @@ return new class () extends Migration {
             $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
             $table->foreignId('deleted_by')->nullable()->constrained('users')->cascadeOnDelete();
             $table->foreignId('updated_by')->nullable()->constrained('users')->cascadeOnDelete();
-            $table->decimal('cash_tendered', 10, 2)->default(0);
-            $table->decimal('change', 10, 2)->default(0);
+            $table->decimal('cash_tendered', 10, 2)->default(0)->nullable();
+            $table->decimal('change', 10, 2)->default(0)->nullable();
             $table->foreignId('school_expense_id')->constrained()->onDelete('cascade')->nullable();
-            $table->decimal('pay_amount', 10, 2)->default(0);
+            $table->decimal('pay_amount', 10, 2)->default(0)->nullable();
             $table->string('gcash_reference_number')->nullable();
             $table->string('bank_reference_number')->nullable();
             $table->string('bank_name')->nullable();
             $table->string('bank_account_number')->nullable();
             $table->string('other_reference_number')->nullable();
             $table->string('other_notes')->nullable();
-            $table->string('gcash_pay_amount')->nullable();
-            $table->string('bank_pay_amount')->nullable();
-            $table->string('other_pay_amount')->nullable();
+            $table->string('gcash_pay_amount')->default(0)->nullable();
+            $table->string('bank_pay_amount')->default(0)->nullable();
+            $table->string('other_pay_amount')->default(0)->nullable();
 
             $table->softDeletes();
             $table->timestamps();

@@ -8,24 +8,17 @@ use App\Models\Enrollment;
 use App\Models\SchoolExpense;
 use App\Models\StudentPayment;
 use Dom\Text;
-use Fauzie811\FilamentListEntry\Infolists\Components\ListEntry;
-use Filament\Facades\Filament;
 use Filament\Forms\Components\{Fieldset, Group, Hidden, Placeholder, Select, Textarea, TextInput};
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
-use Filament\Infolists\Components\Group as ComponentsGroup;
+use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
-use Filament\Support\Enums\IconPosition;
 use Filament\Tables;
-use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\HtmlString;
-use League\CommonMark\Extension\CommonMark\Node\Block\ListItem;
 
 class PaymentResource extends Resource
 {
@@ -54,17 +47,15 @@ class PaymentResource extends Resource
                         Fieldset::make('enrollment_reference_number')
                             ->label('Enrollment Reference Number')
                             ->schema([
+
                                 Select::make('enrollment_id')
-                                    ->hiddenLabel()
+                                    ->label('Enrollment')
                                     ->columnSpan(2)
                                     ->placeholder('Enter Reference Number')
-                                    ->relationship(
-                                        name: 'enrollment',
-                                        titleAttribute: 'reference_number',
-                                        modifyQueryUsing: fn (Builder $query) => $query->with('student')
-                                    )
+                                    ->preload()
                                     ->getSearchResultsUsing(function (string $search) {
                                         return Enrollment::query()
+                                            ->with('student') // Eager load
                                             ->where('reference_number', 'like', "%{$search}%")
                                             ->orWhereHas(
                                                 'student',
@@ -73,46 +64,16 @@ class PaymentResource extends Resource
                                             )
                                             ->limit(10)
                                             ->get()
-                                            ->pluck('reference_number', 'id');
+                                            ->mapWithKeys(function ($enrollment) {
+                                                $student = $enrollment->student;
+                                                return [$enrollment->id => "{$enrollment->reference_number} - {$student->first_name} {$student->last_name}"];
+                                            });
                                     })
                                     ->searchable()
-                                    ->live()
-                                    ->afterStateUpdated(function ($state, callable $set) {
-                                        $enrollment = Enrollment::with('student')->find($state);
-                                        if ($enrollment && $enrollment->student) {
-                                            $student = $enrollment->student;
-                                            $set('student_first_name', $student->first_name);
-                                            $set('student_last_name', $student->last_name);
-
-                                        } else {
-                                            $set('student_first_name', null);
-                                            $set('student_last_name', null);
-
-                                        }
-                                    })
-                                    ->required(),
-
+                                    ->required()
 
                             ])->columnSpanFull(),
 
-
-                        Fieldset::make('Student Information')
-                            ->columnSpanFull()
-                            ->columns(2)
-                            ->schema([
-
-                                TextInput::make('student_first_name')
-                                    ->columnSpan(1)
-                                    ->readOnly()
-                                    ->label('First Name'),
-
-                                TextInput::make('student_last_name')
-                                    ->columnSpan(1)
-                                    ->readOnly()
-                                    ->label('Last Name'),
-
-
-                            ]),
 
                         Fieldset::make('Payment Information')
                             ->columnSpanFull()
@@ -168,7 +129,7 @@ class PaymentResource extends Resource
                                     ->required($requiredIf('bank_transfer'))
                                     ->label('Bank Pay Amount'),
 
-                                TextInput::make('bank_transfer_reference_number')
+                                TextInput::make('bank_reference_number')
                                     ->hidden($hiddenUnless('bank_transfer'))
                                     ->required($requiredIf('bank_transfer'))
                                     ->label('Bank Transfer Reference Number'),
@@ -222,7 +183,6 @@ class PaymentResource extends Resource
                                     ->numeric()
                                     ->readOnly()
                                     ->prefix('₱')
-
 
 
                             ]),
@@ -307,12 +267,12 @@ class PaymentResource extends Resource
 
                 Tables\Actions\DeleteAction::make()
                     ->requiresConfirmation()
-                    ->modalHeading(fn ($record) => 'Void this payment ' . $record->reference_number . '?')
+                    ->modalHeading(fn ($record) => 'Void this payment '.$record->reference_number.'?')
                     ->icon('heroicon-o-trash')
                     ->label('Void')
                     ->hiddenLabel()
                     ->link()
-                    ->successNotificationTitle(fn ($record) =>  $record->reference_number . ' has been voided.')
+                    ->successNotificationTitle(fn ($record) => $record->reference_number.' has been voided.')
                     ->after(function ($record) {
                         $record->status = 'void';
                         $record->save();
@@ -336,7 +296,7 @@ class PaymentResource extends Resource
                     ->hiddenLabel()
                     ->columnSpan(3)
                     ->schema([
-                         \Filament\Infolists\Components\Section::make('Student Details')
+                        Section::make('Student Details')
                             ->columns(3)
                             ->schema([
                                 TextEntry::make('enrollment.reference_number')
@@ -353,7 +313,7 @@ class PaymentResource extends Resource
 
                             ]),
 
-                        \Filament\Infolists\Components\Section::make('Payment Details')
+                        Section::make('Payment Details')
                             ->columns(3)
                             ->schema([
 
@@ -381,12 +341,11 @@ class PaymentResource extends Resource
                                     ->label('Paid Amount'),
 
 
-                                TextEntry::make('gcash_amount')
+                                TextEntry::make('gcash_pay_amount')
                                     ->numeric(2)
                                     ->visible(fn ($record): bool => $record->payment_method === 'gcash')
                                     ->label('Gcash Amount'),
                                 TextEntry::make('gcash_reference_number')
-                                    ->numeric(2)
                                     ->visible(fn ($record): bool => $record->payment_method === 'gcash')
                                     ->label('Gcash Ref #'),
 
@@ -398,13 +357,13 @@ class PaymentResource extends Resource
                                     ->visible(fn ($record): bool => $record->payment_method === 'bank_transfer')
                                     ->label('Bank Name'),
                                 TextEntry::make('bank_account_number')
-                                    ->hint('Last 4 digits of account number')
                                     ->visible(fn ($record): bool => $record->payment_method === 'bank_transfer')
+                                    ->columnSpan(2)
                                     ->label('Bank Account #'),
 
                                 TextEntry::make('other_reference_number')
                                     ->visible(fn ($record): bool => $record->payment_method === 'other')
-                                    ->label('Transaction Ref #'),
+                                    ->label('Ref #'),
 
                                 TextEntry::make('other_notes')
                                     ->visible(fn ($record): bool => $record->payment_method === 'other')
@@ -435,9 +394,7 @@ class PaymentResource extends Resource
                             ]),
 
 
-
                     ]),
-
 
 
             ]);

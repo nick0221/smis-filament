@@ -21,10 +21,20 @@ class CreatePayment extends CreateRecord
     {
         $data['created_by'] = Auth::user()->id;
         $data['status'] = 'paid'; // Set the status to 'paid' // options: pending, paid, failed
-        $data['pay_amount'] = $data['cash_tendered'] < $data['amount'] ? $data['cash_tendered'] : $data['amount'];
+
+        if ($data['payment_method'] == 'cash') {
+            $data['pay_amount'] = $data['cash_tendered'] < $data['amount'] ? $data['cash_tendered'] : $data['amount'];
+
+        }
 
         return $data;
 
+    }
+
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('view', ['record' => $this->getRecord()]);
     }
 
 }
