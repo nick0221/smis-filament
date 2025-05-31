@@ -159,10 +159,10 @@
                 <td class="text-right"><strong>School Year:</strong> {{ $payment->enrollment->school_year_from }} - {{ $payment->enrollment->school_year_to }}</td>
             </tr>
 
-            <tr>
+            {{-- <tr>
                 <td><strong>Current Balance:</strong> - </td>
 
-            </tr>
+            </tr> --}}
         </table>
 
         {{-- Payment Info --}}
@@ -229,10 +229,10 @@
                 </tr>
             @endif
 
-                <tr>
+                {{-- <tr>
                     <td><strong>Ending Balance</strong></td>
                     <td> - </td>
-                </tr>
+                </tr> --}}
         </table>
 
         {{-- Signature --}}
