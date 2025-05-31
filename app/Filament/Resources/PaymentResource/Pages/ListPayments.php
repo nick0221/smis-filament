@@ -14,7 +14,6 @@ class ListPayments extends ListRecords
     protected static ?string $title = 'Payment Records';
 
 
-
     public function getHeading(): string|Htmlable
     {
         return 'Payment Records';
@@ -24,6 +23,14 @@ class ListPayments extends ListRecords
     {
         return [
             Actions\CreateAction::make(),
+        ];
+    }
+
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            PaymentResource\Widgets\StudentPaymentOverview::class,
         ];
     }
 

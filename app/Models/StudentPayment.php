@@ -72,6 +72,30 @@ class StudentPayment extends Model
     }
 
 
+    public static function getTotalPaidToday(): float
+    {
+        return static::whereDate('payment_date', now())
+            ->where('status', 'paid')
+            ->selectRaw('SUM(pay_amount + gcash_pay_amount + bank_pay_amount + other_pay_amount) as totalToday')
+            ->value('totalToday') ?? 0;
+    }
+
+    public static function getTotalPaidThisMonth(): float
+    {
+        return static::whereMonth('payment_date', now()->month)
+            ->whereYear('payment_date', now()->year) // Ensures it's for the current year/month
+            ->where('status', 'paid')
+            ->selectRaw('SUM(pay_amount + gcash_pay_amount + bank_pay_amount + other_pay_amount) as totalThisMonth')
+            ->value('totalThisMonth') ?? 0;
+    }
+
+    public static function getTotalPaidThisYear(): float
+    {
+        return static::whereYear('payment_date', now()->year) // Ensures it's for the current year
+            ->where('status', 'paid')
+            ->selectRaw('SUM(pay_amount + gcash_pay_amount + bank_pay_amount + other_pay_amount) as totalThisYear')
+            ->value('totalThisYear') ?? 0;
+    }
 
 
 

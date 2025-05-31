@@ -231,24 +231,30 @@ class PaymentResource extends Resource
                 Tables\Columns\TextColumn::make('enrollment.student.full_name')
                     ->label('Student')
                     ->searchable([
-                        'enrollment.student.first_name',
-                        'enrollment.student.last_name',
+                        'first_name',
+                        'last_name',
                     ]),
 
                 Tables\Columns\TextColumn::make('payment_method')
                     ->label('Payment Method')
-                    ->formatStateUsing(fn ($record): string => ucwords($record->payment_method))
-                    ->searchable(),
+                    ->formatStateUsing(fn ($record): string => ucwords($record->payment_method)),
 
-                Tables\Columns\TextColumn::make('pay_amount')
-                    ->label('Payment Amount'),
+                Tables\Columns\TextColumn::make('paid_amount')
+                    ->getStateUsing(fn ($record) => match ($record->payment_method) {
+                        'cash'  => number_format($record->pay_amount, 2),
+                        'gcash' => number_format($record->gcash_pay_amount, 2),
+                        'bank_transfer' => number_format($record->bank_pay_amount, 2),
+                        'other' => number_format($record->other_pay_amount, 2),
+                        default => '-',
+                    })
+                    ->label('Paid Amount'),
+
 
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()
                     ->formatStateUsing(fn ($record): string => ucwords($record->status))
-                    ->color(fn ($record): string => $record->status === 'paid' ? 'success' : 'danger')
-                    ->searchable(),
+                    ->color(fn ($record): string => $record->status === 'paid' ? 'success' : 'danger'),
 
 
             ])
@@ -416,4 +422,6 @@ class PaymentResource extends Resource
             'view' => Pages\ViewStudentPayment::route('/{record}'),
         ];
     }
+
+
 }
