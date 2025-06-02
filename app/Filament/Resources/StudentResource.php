@@ -21,15 +21,32 @@ use App\Filament\Resources\StudentResource\Pages;
 use Filament\Infolists\Components\RepeatableEntry;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\StudentResource\RelationManagers;
+use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use Filament\Forms\Components\{Tabs,  Grid, TextInput, DatePicker, Select, FileUpload, Repeater, Textarea};
 
-class StudentResource extends Resource
+class StudentResource extends Resource implements HasShieldPermissions
 {
     protected static ?string $model = Student::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-square-3-stack-3d';
 
     protected static int $globalSearchResultsLimit = 5;
+
+
+    public static function getPermissionPrefixes(): array
+    {
+        return [
+            'view',
+            'view_any',
+            'create',
+            'update',
+            'delete',
+            'delete_any',
+            'restore',
+        ];
+    }
+
+
 
     public static function form(Form $form): Form
     {

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Filament\Pages\Page;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Filament\Notifications\Notification;
 use Illuminate\Validation\ValidationException;
@@ -28,5 +29,9 @@ class AppServiceProvider extends ServiceProvider
                 ->danger()
                 ->send();
         };
+
+        Gate::guessPolicyNamesUsing(function (string $modelClass) {
+            return str_replace('Models', 'Policies', $modelClass) . 'Policy';
+        });
     }
 }
