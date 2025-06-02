@@ -43,6 +43,8 @@ class UserResource extends Resource
                 Forms\Components\CheckboxList::make('roles')
                     ->relationship('roles', 'name')
                     ->required()
+                    ->gridDirection('row')
+                    ->columns(3)
                     ->getOptionLabelFromRecordUsing(fn (Model $record) => str_replace('_', ' ', strtoupper($record->name)))
                     ->searchable(),
             ]);
