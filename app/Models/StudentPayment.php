@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class StudentPayment extends Model
 {
@@ -96,6 +97,35 @@ class StudentPayment extends Model
             ->selectRaw('SUM(pay_amount + gcash_pay_amount + bank_pay_amount + other_pay_amount) as totalThisYear')
             ->value('totalThisYear') ?? 0;
     }
+
+
+    public static function getMonthlyTotalsByPaymentMethod(): array
+    {
+        $monthlyTotals = array_fill(0, 12, 0);
+        $dbDriver = DB::getDriverName();
+
+        if ($dbDriver === 'sqlite') {
+            $selectMonth = "strftime('%m', payment_date)";
+        } else {
+            $selectMonth = "MONTH(payment_date)";
+        }
+
+        $payments = static::whereYear('payment_date', now()->year)
+            ->where('status', 'paid')
+            ->selectRaw("$selectMonth as month, SUM(pay_amount + gcash_pay_amount + bank_pay_amount + other_pay_amount) as total")
+            ->groupBy('month')
+            ->orderBy('month')
+            ->pluck('total', 'month');
+
+        foreach ($payments as $month => $total) {
+            $index = intval($month) - 1;
+            $monthlyTotals[$index] = (float) $total;
+        }
+
+        return $monthlyTotals;
+
+    }
+
 
 
 

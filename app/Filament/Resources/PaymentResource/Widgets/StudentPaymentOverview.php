@@ -19,7 +19,11 @@ class StudentPaymentOverview extends BaseWidget
 
         return [
             Stat::make('Today', number_format($currentToday) ?? 0),
-            Stat::make('This Month of '. now()->format('F'), number_format($thisMonth) ?? 0),
+
+            Stat::make('This Month of '. now()->format('F'), number_format($thisMonth) ?? 0)
+                ->color('success')
+                ->chart(StudentPayment::getMonthlyTotalsByPaymentMethod()),
+
             Stat::make('This Year '. now()->format('Y'), number_format($thisYear) ?? 0),
 
         ];
