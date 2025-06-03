@@ -2,16 +2,17 @@
 
 namespace App\Filament\Resources\EnrollmentResource\RelationManagers;
 
-use App\Models\StudentDocument;
 use Filament\Forms;
+use Filament\Tables;
 use Filament\Forms\Form;
+use Filament\Tables\Table;
+use Illuminate\Support\Str;
+use App\Models\StudentDocument;
+use Illuminate\Http\UploadedFile;
+use Filament\Tables\Actions\BulkAction;
+use Illuminate\Support\Facades\Storage;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Tables;
-use Filament\Tables\Actions\BulkAction;
-use Filament\Tables\Table;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Str;
 
 class StudentDocumentsRelationManager extends RelationManager
 {
@@ -142,6 +143,13 @@ class StudentDocumentsRelationManager extends RelationManager
                     ->size('lg')
                     ->closeModalByClickingAway(false)
                     ->icon('heroicon-o-x-circle')
+                    ->after(function ($record) {
+                        $filePath = $record->file_path;
+
+                        if ($filePath && Storage::disk('public')->exists($filePath)) {
+                            Storage::disk('public')->delete($filePath);
+                        }
+                    })
                     ->modalHeading('Delete Document?'),
 
 
