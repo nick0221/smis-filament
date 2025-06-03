@@ -28,7 +28,6 @@ class StudentDocumentsRelationManager extends RelationManager
     {
         $countDocuments = (int) $this->ownerRecord->studentDocuments()->count();
 
-
         return $table
             ->heading('Student Documents  '. ($countDocuments > 0 ? "({$countDocuments})" : ''))
             ->deferLoading()
@@ -90,7 +89,7 @@ class StudentDocumentsRelationManager extends RelationManager
                                 Forms\Components\FileUpload::make('file_path')
                                     ->label('File')
                                     ->disk('public')
-                                    ->directory('student-documents')
+                                    ->directory('student-documents/'.$this->ownerRecord->student->student_id_number)
                                     ->required()
                                     ->previewable()
                                     ->acceptedFileTypes(['application/pdf', 'image/*']),
@@ -127,7 +126,7 @@ class StudentDocumentsRelationManager extends RelationManager
                     ->form([
                         Forms\Components\FileUpload::make('file_path')
                             ->disk('public')
-                            ->directory('student-documents')
+                            ->directory('student-documents/'.$this->ownerRecord->student->student_id_number)
                             ->label('File')
                             ->required()
                             ->previewable()
